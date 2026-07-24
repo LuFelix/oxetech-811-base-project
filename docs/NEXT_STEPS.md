@@ -1,6 +1,6 @@
 # Planejamento de Próximos Passos - Oxetech Helpdesk
 
-Este documento descreve as três rotas possíveis para a próxima fase de desenvolvimento do Oxetech Helpdesk, analisando o impacto de entrega, a segurança de arquitetura e fornecendo uma recomendação estratégica.
+Este documento descreve as quatro rotas possíveis para a próxima fase de desenvolvimento do Oxetech Helpdesk, analisando o impacto de entrega, a segurança de arquitetura e fornecendo uma recomendação de reavaliação.
 
 ---
 
@@ -22,31 +22,34 @@ Implementação do fluxo completo de registro, login e proteção de rotas no ba
 * **Prós:** Prepara o backend com segurança real de produção e controle de acesso baseado em papéis (RBAC - Estudante, Professor, Suporte).
 * **Contras:** Entrega técnica pesada e de pouca "satisfação visual" imediata.
 
-### Opção 3: Construção das Primeiras Telas do Frontend (React SPA)
-Desenvolvimento da interface gráfica em React integrando diretamente com a API do backend (rodando no container).
+### Opção 3: Construção das Telas Restantes do Frontend (React SPA)
+Desenvolvimento das telas restantes da interface gráfica em React integrando diretamente com a API do backend (Login Simulado, Formulário de Novo Chamado, e Linha do Tempo/Comentários do Chamado).
 * **Impacto Visual:** Máximo (traz o sistema à vida de forma tangível).
 * **Segurança de Arquitetura:** Média (utiliza autenticação simulada/mockada localmente, exigindo um ajuste simples nos cabeçalhos de requisição quando o JWT real for implementado).
-* **Esforço:** Alto (construção de layouts Vanilla CSS premium e consumo da API).
-* **Prós:** Altíssima satisfação visual. Permite ver o fluxo de chamados funcionando de ponta a ponta (ver, criar e comentar chamados em tempo real na tela).
+* **Esforço:** Alto (construção de layouts e consumo da API).
+* **Prós:** Altíssima satisfação visual. Permite ver o fluxo de chamados funcionando de ponta a ponta.
+* **Contras:** Aumenta o volume de código frontend sem testes automatizados que garantam sua estabilidade.
+
+### Opção 4: Automação de Testes End-to-End (E2E) com Playwright
+Instalação, configuração e escrita dos primeiros testes de integração E2E com o Playwright para a tela de listagem e filtragem de chamados já desenvolvida.
+* **Impacto de Entrega:** Alto (garante a robustez do fluxo de ponta a ponta e a integridade de rede do monorepo).
+* **Segurança de Arquitetura:** Alta (cria a infraestrutura de testes de frontend no monorepo e valida o comportamento real no navegador).
+* **Esforço:** Médio.
+* **Prós:** Eleva a qualidade do frontend ao mesmo nível de maturidade do backend (que já possui 97% de cobertura), garantindo que alterações futuras nas telas não quebrem o comportamento atual.
+* **Contras:** O escopo inicial de testes cobrirá apenas a visualização e os filtros, pois as telas de criação e comentários ainda não existem.
 
 ---
 
-## 🏆 Recomendação Estratégica: Opção 3 (Primeiras Telas)
+## 🏆 Reavaliação: Qual caminho seguir agora?
 
-**Por que a Opção 3 é a recomendada?**
-O backend da AV2 já está totalmente completo, testado (97.8% de cobertura) e populado com dados relacionais reais no banco de dados. Construir a interface agora valida a integração de rede do Docker-compose e dá o maior retorno em termos de demonstração de produto.
+Com a tela de **Listagem e Filtros** concluída com sucesso na AV2, temos duas abordagens principais para escolher:
 
-### Plano de Ação para a Opção 3 (Frontend):
-Para mitigar os riscos arquiteturais de retrabalho com autenticação futura, faremos o seguinte:
-1. **Login Simulado:** Criamos uma tela de login moderna com design premium (glassmorphism/dark mode) onde o usuário seleciona um dos usuários do seed (Ana, Bruno ou Carla).
-2. **Armazenamento Seguro:** Salvamos os dados do usuário logado no `localStorage` em um formato idêntico ao payload de um JWT.
-3. **Consumo da API:** Criamos um cliente HTTP unificado (usando `fetch` ou `axios`) que injeta automaticamente os dados do usuário nos cabeçalhos das requisições. 
-4. **Resultados:** Assim que implementarmos a Opção 2 (autenticação real JWT) futuramente, o frontend precisará apenas substituir a chamada simulada pelo endpoint real de login do backend, sem nenhuma alteração nos componentes visuais!
+### Abordagem A: Pausar Telas e Iniciar E2E (Opção 3 em pausa ➜ Foco na Opção 4)
+* **Objetivo:** Adicionar o Playwright agora e testar a tela de listagem de chamados.
+* **Por que fazer:** Garante a estabilidade da interface atual imediatamente. Introduz a infraestrutura de testes E2E de forma limpa quando o volume de código ainda é pequeno e fácil de testar.
+* **Desvantagem:** Os testes E2E ficarão congelados cobrindo apenas listagem, e precisaremos escrever novos testes conforme novas telas forem criadas.
 
----
-
-## 📌 Telas a serem Desenvolvidas (Escopo da Opção 3)
-1. **Tela de Login:** Seleção de perfil e entrada no sistema.
-2. **Dashboard / Lista de Chamados:** Grid interativo de chamados com filtros de status (Open, Closed), prioridade (Urgent, High) e categoria (Sistemas, Infra).
-3. **Modal de Novo Chamado:** Formulário com validação de dados para criar um ticket.
-4. **Detalhes do Chamado & Timeline:** Visualização do ticket e campo de chat para inserção de comentários em tempo real.
+### Abordagem B: Concluir as Telas e depois aplicar E2E (Foco na Opção 3 ➜ Foco na Opção 4)
+* **Objetivo:** Desenvolver primeiro as telas de Criar Chamado e Adicionar Comentários e, uma vez concluído o fluxo visual, configurar o Playwright para testar o sistema inteiro de uma só vez.
+* **Por que fazer:** Fluxo de desenvolvimento mais natural e ágil. Evita reaberturas sucessivas da suíte de testes E2E, permitindo escrever cenários de ponta a ponta completos (ex: login ➜ criar ticket ➜ adicionar comentário ➜ verificar status) em um único ciclo.
+* **Desvantagem:** Maior volume de código frontend ficará sem testes durante a fase de criação.

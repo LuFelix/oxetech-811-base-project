@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
+  /* Temas Escuros (Default) */
   --bg-primary: #020617;
   --card-bg: rgba(15, 23, 42, 0.45);
   --border-color: rgba(51, 65, 85, 0.35);
@@ -8,6 +9,9 @@
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
+  --input-bg: rgba(2, 6, 23, 0.6);
+  --grad-1-opacity: 0.08;
+  --grad-2-opacity: 0.08;
   
   /* Status Colors */
   --status-open: #38bdf8;
@@ -25,6 +29,25 @@
   --cat-sistemas: #818cf8;
   --cat-infra: #c084fc;
   --cat-academico: #2dd4bf;
+
+  /* Role Colors */
+  --role-student: #2dd4bf;
+  --role-teacher: #fb7185;
+  --role-support: #f59e0b;
+}
+
+[data-theme='light'] {
+  /* Temas Claros */
+  --bg-primary: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(203, 213, 225, 0.6);
+  --border-hover: rgba(99, 102, 241, 0.65);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --grad-1-opacity: 0.04;
+  --grad-2-opacity: 0.04;
 }
 
 * {
@@ -39,6 +62,7 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Background Gradients */
@@ -56,7 +80,7 @@ body {
   left: 15%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 70%);
+  background: radial-gradient(circle, rgba(99, 102, 241, var(--grad-1-opacity)) 0%, rgba(99, 102, 241, 0) 70%);
   border-radius: 50%;
 }
 
@@ -66,7 +90,7 @@ body {
   right: 15%;
   width: 700px;
   height: 700px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0) 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, var(--grad-2-opacity)) 0%, rgba(168, 85, 247, 0) 70%);
   border-radius: 50%;
 }
 
@@ -89,7 +113,8 @@ body {
   border: 1px solid var(--border-color);
   padding: 1rem 2rem;
   border-radius: 20px;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .navbar-brand {
@@ -101,38 +126,50 @@ body {
 .navbar-brand h1 {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(to right, #ffffff, #cbd5e1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
 }
 
-.user-selector {
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-profile-nav {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-}
-
-.user-selector label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.select-input {
-  background: rgba(2, 6, 23, 0.6);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  background: rgba(51, 65, 85, 0.1);
   padding: 0.5rem 1rem;
-  border-radius: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+}
+
+.user-profile-nav .role-name {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  outline: none;
 }
 
-.select-input:focus {
-  border-color: var(--border-hover);
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
 }
 
 /* Stats Cards Grid */
@@ -149,7 +186,7 @@ body {
   border: 1px solid var(--border-color);
   padding: 1.5rem;
   border-radius: 16px;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -172,7 +209,7 @@ body {
 .stat-card .value {
   font-size: 2.25rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1;
 }
 
@@ -184,7 +221,7 @@ body {
   padding: 1.5rem;
   border-radius: 20px;
   margin-bottom: 2rem;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;
@@ -199,7 +236,7 @@ body {
 
 .search-input {
   width: 100%;
-  background: rgba(2, 6, 23, 0.6);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 0.75rem 1rem 0.75rem 2.5rem;
@@ -237,6 +274,23 @@ body {
   white-space: nowrap;
 }
 
+.select-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.select-input:focus {
+  border-color: var(--border-hover);
+}
+
 /* Tickets Layout */
 .tickets-header {
   display: flex;
@@ -248,15 +302,16 @@ body {
 .tickets-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .tickets-count {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  background: rgba(51, 65, 85, 0.4);
+  background: rgba(51, 65, 85, 0.1);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
+  border: 1px solid var(--border-color);
 }
 
 .tickets-grid {
@@ -272,7 +327,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -293,7 +348,7 @@ body {
 .ticket-card:hover {
   border-color: var(--border-hover);
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.1);
 }
 
 .ticket-body {
@@ -317,10 +372,15 @@ body {
   font-weight: 600;
 }
 
+.ticket-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
 .ticket-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1.3;
 }
 
@@ -414,7 +474,7 @@ body {
 /* Card Footer */
 .ticket-footer {
   padding: 1rem 1.5rem;
-  background: rgba(2, 6, 23, 0.25);
+  background: rgba(51, 65, 85, 0.05);
   border-top: 1px solid var(--border-color);
   font-size: 0.8rem;
   color: var(--text-secondary);
@@ -431,14 +491,14 @@ body {
 }
 
 .avatar-circle {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: #fff;
   font-weight: 700;
 }
@@ -465,7 +525,7 @@ body {
 
 .empty-state h3 {
   font-size: 1.25rem;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .empty-state p {
@@ -485,4 +545,167 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--border-hover);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* LOGIN SCREEN STYLES */
+.login-wrapper {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.theme-toggle-container {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 28px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.login-card:hover {
+  border-color: var(--border-hover);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.login-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 0.75rem;
+}
+
+.logo-container {
+  display: inline-flex;
+  padding: 1rem;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  border-radius: 18px;
+  box-shadow: 0 10px 20px -3px rgba(99, 102, 241, 0.25);
+  margin-bottom: 0.5rem;
+}
+
+.logo {
+  font-size: 2rem;
+}
+
+.profile-selection-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-select-card {
+  width: 100%;
+  background: rgba(99, 102, 241, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  font-family: inherit;
+  outline: none;
+  position: relative;
+}
+
+.profile-select-card:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -8px rgba(99, 102, 241, 0.2);
+}
+
+.profile-avatar {
+  font-size: 1.5rem;
+  background: rgba(51, 65, 85, 0.1);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.profile-email {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.profile-role-badge {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.badge-role-student {
+  background: rgba(45, 212, 191, 0.1);
+  color: var(--role-student);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+}
+
+.badge-role-teacher {
+  background: rgba(251, 113, 133, 0.1);
+  color: var(--role-teacher);
+  border: 1px solid rgba(251, 113, 133, 0.2);
+}
+
+.badge-role-support {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--role-support);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
