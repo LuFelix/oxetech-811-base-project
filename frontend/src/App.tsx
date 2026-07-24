@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { DashboardStats } from "./components/DashboardStats";
 import { TicketFilters } from "./components/TicketFilters";
 import { TicketCard } from "./components/TicketCard";
+import { Login } from "./components/Login";
+import { useTheme } from "./context/ThemeContext";
 
 interface User {
   id: string;
@@ -42,10 +44,13 @@ interface SummaryData {
 const API_BASE_URL = "http://localhost:3000/api";
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem("oxetech-helpdesk:user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [summary, setSummary] = useState<SummaryData>({ open: 0, in_progress: 0, resolved: 0, closed: 0, urgent: 0 });
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string>("");
   
   // Filters State
   const [search, setSearch] = useState("");
@@ -55,26 +60,15 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch Users (On Mount)
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/users`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao buscar usuários");
-        return res.json();
-      })
-      .then((data) => {
-        setUsers(data);
-        if (data.length > 0) setSelectedUser(data[0].id);
-      })
-      .catch((err) => console.error(err));
-  }, []);
+  const { theme, toggleTheme } = useTheme();
 
-  // Fetch Tickets and Summary (Depends on Filters)
+  // Fetch Tickets and Summary (Depends on Filters - only if user is logged in)
   useEffect(() => {
+    if (!currentUser) return;
+
     setLoading(true);
     setError(null);
 
-    // Build Query String
     const params = new URLSearchParams();
     if (status) params.append("status", status);
     if (category) params.append("category", category);
@@ -102,7 +96,36 @@ function App() {
         setError(err.message);
         setLoading(false);
       });
-  }, [search, category, status]);
+  }, [currentUser, search, category, status]);
+
+  const handleLogin = (user: User) => {
+    localStorage.setItem("oxetech-helpdesk:user", JSON.stringify(user));
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("oxetech-helpdesk:user");
+    setCurrentUser(null);
+  };
+
+  const getRoleBadgeLabel = (role: string) => {
+    if (role === "student") return "Aluno";
+    if (role === "teacher") return "Prof";
+    return "Suporte";
+  };
+
+  const getRoleIcon = (role: string) => {
+    if (role === "student") return "🎓";
+    if (role === "teacher") return "👨‍🏫";
+    return "🛠️";
+  };
+
+  // Render Login if no session
+  if (!currentUser) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  const userInitial = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "?";
 
   return (
     <>
@@ -119,20 +142,25 @@ function App() {
             <h1>Oxetech Helpdesk</h1>
           </div>
 
-          <div className="user-selector">
-            <label htmlFor="user-select">Simular Usuário:</label>
-            <select
-              id="user-select"
-              className="select-input"
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-            >
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.role === "student" ? "Aluno" : user.role === "teacher" ? "Prof" : "Suporte"})
-                </option>
-              ))}
-            </select>
+          <div className="navbar-actions">
+            {/* Theme Toggle */}
+            <button className="theme-toggle-btn" onClick={toggleTheme} title="Alternar Tema">
+              {theme === "dark" ? "☀️ Claro" : "🌙 Escuro"}
+            </button>
+
+            {/* Simulated User Info */}
+            <div className="user-profile-nav">
+              <div className="avatar-circle">{getRoleIcon(currentUser.role)}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{currentUser.name}</span>
+                <span className="role-name">{getRoleBadgeLabel(currentUser.role)}</span>
+              </div>
+            </div>
+
+            {/* Logout */}
+            <button className="btn-logout" onClick={handleLogout}>
+              Sair
+            </button>
           </div>
         </nav>
 
