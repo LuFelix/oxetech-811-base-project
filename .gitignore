@@ -9,8 +9,10 @@ COMANDOS_UTEIS.md
 !docs/CHECKPOINTS.md
 !docs/TESTS_README.md
 !docs/SUMARIO_SISTEMA.md
+!docs/NEXT_STEPS.md
 /docs/MANUAL_PROTOCOLOS.md
 docs/MANUAL_PROTOCOLOS.md
+docs/ESTUDO_ANGULAR_REACT.md
 /docs/AV1.MD
 /docs/PLANO-AV1.md
 /docs/PLANO-AV2.md
@@ -19,3 +21,4 @@ issues-todo.json
 TEACHER_GUIDE.md
 .vite/
 manual-protocolos.md
+issues-*.oxehelp.js
