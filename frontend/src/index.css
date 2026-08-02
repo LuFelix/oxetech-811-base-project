@@ -581,10 +581,34 @@ body {
   position: relative;
 }
 
-.theme-toggle-container {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
+.auth-top-bar {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+}
+
+.auth-theme-toggle {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-theme-toggle:hover {
+  border-color: var(--border-hover);
+  background: rgba(99, 102, 241, 0.05);
 }
 
 .login-card {

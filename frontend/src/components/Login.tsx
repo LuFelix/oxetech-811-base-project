@@ -60,9 +60,9 @@ export function Login({ onLogin, onNavigateToRegister }: LoginProps) {
 
   return (
     <div className="login-wrapper">
-      <div className="theme-toggle-container">
-        <button className="theme-toggle-btn" onClick={toggleTheme} title="Alternar Tema">
-          {theme === "dark" ? "☀️ Modo Claro" : "🌙 Modo Escuro"}
+      <div className="auth-top-bar">
+        <button className="auth-theme-toggle" onClick={toggleTheme} title="Alternar Tema">
+          {theme === "dark" ? "☀️" : "🌙"}
         </button>
       </div>
 
