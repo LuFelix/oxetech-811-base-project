@@ -71,3 +71,22 @@ export async function saveComment(comment: TicketComment): Promise<void> {
     },
   });
 }
+
+export async function saveUser(user: User): Promise<void> {
+  await prisma.user.create({
+    data: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      password: user.password,
+    },
+  });
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const row = await prisma.user.findUnique({
+    where: { email },
+  });
+  return row as User | null;
+}

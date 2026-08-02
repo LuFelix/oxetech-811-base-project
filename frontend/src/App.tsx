@@ -3,6 +3,7 @@ import { DashboardStats } from "./components/DashboardStats";
 import { TicketFilters } from "./components/TicketFilters";
 import { TicketCard } from "./components/TicketCard";
 import { Login } from "./components/Login";
+import { Register } from "./components/Register";
 import { CreateTicketModal } from "./components/CreateTicketModal";
 import { TicketDetails } from "./components/TicketDetails";
 import { useTheme } from "./context/ThemeContext";
@@ -65,6 +66,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [showRegister, setShowRegister] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
 
@@ -127,9 +129,12 @@ function App() {
     return "🛠️";
   };
 
-  // Render Login if no session
+  // Render Login or Register if no session
   if (!currentUser) {
-    return <Login onLogin={handleLogin} />;
+    if (showRegister) {
+      return <Register onBackToLogin={() => setShowRegister(false)} />;
+    }
+    return <Login onLogin={handleLogin} onNavigateToRegister={() => setShowRegister(true)} />;
   }
 
   const userInitial = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "?";

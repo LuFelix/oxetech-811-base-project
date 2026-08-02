@@ -9,11 +9,13 @@ import {
   listUsers,
   updateTicketStatus,
 } from "./controllers/ticket.controller";
+import { createUser } from "./controllers/user.controller";
 
 const router = Router();
 
 router.get("/health", healthCheck);
 router.get("/users", listUsers);
+router.post("/users", createUser);
 router.get("/tickets", listTickets);
 router.get("/tickets/summary", getTicketSummary);
 router.get("/tickets/:id", getTicketById);

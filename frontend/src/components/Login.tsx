@@ -10,11 +10,12 @@ interface User {
 
 interface LoginProps {
   onLogin: (user: User) => void;
+  onNavigateToRegister: () => void;
 }
 
 const API_BASE_URL = "http://localhost:3000/api";
 
-export function Login({ onLogin }: LoginProps) {
+export function Login({ onLogin, onNavigateToRegister }: LoginProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,24 +85,44 @@ export function Login({ onLogin }: LoginProps) {
         )}
 
         {!loading && !error && (
-          <div className="profile-selection-grid">
-            {users.map((user) => (
+          <>
+            <div className="profile-selection-grid">
+              {users.map((user) => (
+                <button
+                  key={user.id}
+                  className="profile-select-card"
+                  onClick={() => onLogin(user)}
+                >
+                  <span className="profile-avatar">{getRoleIcon(user.role)}</span>
+                  <div className="profile-info">
+                    <span className="profile-name">{user.name}</span>
+                    <span className="profile-email">{user.email}</span>
+                  </div>
+                  <span className={`badge badge-role-${user.role} profile-role-badge`}>
+                    {getRoleBadgeLabel(user.role)}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
               <button
-                key={user.id}
-                className="profile-select-card"
-                onClick={() => onLogin(user)}
+                type="button"
+                className="btn-back-to-login"
+                onClick={onNavigateToRegister}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  textDecoration: "underline",
+                }}
               >
-                <span className="profile-avatar">{getRoleIcon(user.role)}</span>
-                <div className="profile-info">
-                  <span className="profile-name">{user.name}</span>
-                  <span className="profile-email">{user.email}</span>
-                </div>
-                <span className={`badge badge-role-${user.role} profile-role-badge`}>
-                  {getRoleBadgeLabel(user.role)}
-                </span>
+                Não tem uma conta? Cadastre-se
               </button>
-            ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>
