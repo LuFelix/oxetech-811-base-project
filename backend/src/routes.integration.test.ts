@@ -35,6 +35,12 @@ vi.mock("./infrastructure/database/prisma", () => ({
   },
 }));
 
+vi.mock("./domain/services/email.service", () => ({
+  sendTicketCreatedNotification: vi.fn().mockResolvedValue(undefined),
+  sendCommentAddedNotification: vi.fn().mockResolvedValue(undefined),
+  sendStatusUpdatedNotification: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe("API Routes Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();

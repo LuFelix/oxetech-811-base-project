@@ -4,6 +4,11 @@ import * as repository from "../../infrastructure/database/prisma.repository";
 import { ValidationError, NotFoundError } from "../errors/app-error";
 import { VALID_TICKET_STATUSES, VALID_TICKET_CATEGORIES } from "../ticket.constants";
 import { prisma } from "../../infrastructure/database/prisma";
+import {
+  sendTicketCreatedNotification,
+  sendCommentAddedNotification,
+  sendStatusUpdatedNotification,
+} from "./email.service";
 
 export async function createTicket(payload: {
   title: string;
@@ -42,6 +47,15 @@ export async function createTicket(payload: {
   };
 
   await repository.saveTicket(ticket);
+
+  sendTicketCreatedNotification(user.email, {
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    category: ticket.category,
+    priority: ticket.priority,
+  }).catch((err) => console.error("Erro ao enviar e-mail de criacao:", err));
+
   return ticket;
 }
 
@@ -66,11 +80,13 @@ export async function updateTicketStatus(
     throw new ValidationError("Informe um comentario para fechar o chamado");
   }
 
+  let authorName = "Suporte";
   if (authorId) {
     const author = await prisma.user.findUnique({ where: { id: authorId } });
     if (!author) {
       throw new ValidationError("Autor do comentario invalido");
     }
+    authorName = author.name;
   }
 
   ticket.status = newStatus;
@@ -87,6 +103,12 @@ export async function updateTicketStatus(
       createdAt: new Date().toISOString(),
     };
     await repository.saveComment(comment);
+  }
+
+  const requester = await prisma.user.findUnique({ where: { id: ticket.requesterId } });
+  if (requester) {
+    sendStatusUpdatedNotification(requester.email, ticket.id, newStatus, authorName, commentText)
+      .catch((err) => console.error("Erro ao enviar e-mail de status:", err));
   }
 
   return ticket;
@@ -125,6 +147,16 @@ export async function addTicketComment(
 
   ticket.updatedAt = new Date().toISOString();
   await repository.updateTicket(ticket);
+
+  if (authorId !== ticket.requesterId) {
+    const requester = await prisma.user.findUnique({ where: { id: ticket.requesterId } });
+    if (requester) {
+      sendCommentAddedNotification(requester.email, ticket.id, {
+        authorName: author.name,
+        message,
+      }).catch((err) => console.error("Erro ao enviar e-mail de comentario:", err));
+    }
+  }
 
   return comment;
 }
