@@ -93,6 +93,17 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
   };
 
   const handleUpdateStatus = async (newStatus: string) => {
+    let comment: string | undefined = undefined;
+    if (newStatus === "closed") {
+      const input = prompt("Por favor, digite uma justificativa/comentário para o fechamento:");
+      if (input === null) return; // cancel click
+      if (!input.trim()) {
+        alert("É necessário informar uma justificativa para fechar o chamado.");
+        return;
+      }
+      comment = input.trim();
+    }
+
     setSubmittingStatus(true);
     try {
       const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/status`, {
@@ -103,10 +114,14 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
         body: JSON.stringify({
           status: newStatus,
           authorId: currentUser.id,
+          comment,
         }),
       });
 
-      if (!response.ok) throw new Error("Falha ao atualizar status");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Falha ao atualizar status");
+      }
 
       // Refetch to update ticket details
       await fetchTicketDetails();

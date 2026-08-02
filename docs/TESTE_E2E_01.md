@@ -45,6 +45,13 @@ Para inspecionar detalhadamente cada clique e chamada de rede realizada pelo tes
    ```
 3. Uma página local abrirá no seu navegador listando o teste. Clicando nele, você poderá ver prints de tela de cada clique e o tempo de resposta da API.
 
+### 3. Ajuste de Velocidade da Execução (Slow Motion)
+Por padrão, os testes automatizados rodam em velocidade de máquina. Para fins de apresentação acadêmica ou gravação de manual, a velocidade foi configurada no arquivo `playwright.config.ts` utilizando a propriedade **`slowMo: 1200`** (Slow Motion).
+*   **O que ela faz:** Adiciona um atraso de 1.2 segundos (1200ms) entre cada ação do Playwright (como cliques, navegação ou submissão de formulários).
+*   **Por que não atrasa a digitação:** As ações de digitação utilizam o método `.fill()`, que insere a string de texto completa instantaneamente de uma vez, e apenas aguarda 1.2s antes de ir para a próxima ação. Isso deixa o teste fluído e legível.
+*   **Quando usar:** Em gravações de demonstrações (demos) para facilitar o acompanhamento visual das telas ou em depurações visuais (debug).
+*   **Quando desativar:** Em ambientes de Integração Contínua (CI/CD) para maximizar a velocidade do pipeline de entrega.
+
 ---
 
 ## 🧪 Cenários de Teste Validados (Jornada do Usuário)
