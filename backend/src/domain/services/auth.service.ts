@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { hashPassword } from "../../services/security/password";
+import { comparePassword } from "../../services/security/password";
 import { ValidationError } from "../errors/app-error";
 import * as repository from "../../infrastructure/database/prisma.repository";
 import { sanitizeUser } from "../utils/user.mapper";
@@ -22,8 +22,7 @@ export async function login(email: string, plain: string): Promise<LoginResult> 
     throw new ValidationError("E-mail ou senha incorretos");
   }
 
-  const hashedInput = hashPassword(plain);
-  if (hashedInput !== user.password) {
+  if (!comparePassword(plain, user.password)) {
     throw new ValidationError("E-mail ou senha incorretos");
   }
 
