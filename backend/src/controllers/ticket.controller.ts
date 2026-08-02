@@ -1,4 +1,5 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 import { NotFoundError } from "../domain/errors/app-error";
 import { mapTicketDetails } from "../domain/utils/ticket.mapper";
 import {
@@ -9,20 +10,24 @@ import { sanitizeUser } from "../domain/utils/user.mapper";
 import * as repository from "../infrastructure/database/prisma.repository";
 import * as ticketService from "../domain/services/ticket.service";
 
-export function healthCheck(_request: Request, response: Response) {
+export function healthCheck(_request: AuthenticatedRequest, response: Response) {
   response.json({ status: "ok", service: "oxetech-helpdesk" });
 }
 
-export async function listUsers(_request: Request, response: Response) {
+export async function listUsers(_request: AuthenticatedRequest, response: Response) {
   const users = await repository.getUsers();
   const sanitizedUsers = users.map((user) => sanitizeUser(user));
   response.json(sanitizedUsers);
 }
 
-export async function listTickets(request: Request, response: Response) {
-  const tickets = await repository.getTickets();
+export async function listTickets(request: AuthenticatedRequest, response: Response) {
+  let tickets = await repository.getTickets();
   const users = await repository.getUsers();
   const comments = await repository.getComments();
+
+  if (request.user?.role === "student") {
+    tickets = tickets.filter((t) => t.requesterId === request.user?.id);
+  }
 
   const { status, category, search } = request.query;
 
@@ -37,18 +42,26 @@ export async function listTickets(request: Request, response: Response) {
   response.json(result);
 }
 
-export async function getTicketSummary(_request: Request, response: Response) {
-  const tickets = await repository.getTickets();
+export async function getTicketSummary(request: AuthenticatedRequest, response: Response) {
+  let tickets = await repository.getTickets();
+  if (request.user?.role === "student") {
+    tickets = tickets.filter((t) => t.requesterId === request.user?.id);
+  }
   const summary = calculateTicketSummary(tickets);
   response.json(summary);
 }
 
-export async function getTicketById(request: Request, response: Response) {
+export async function getTicketById(request: AuthenticatedRequest, response: Response) {
   const tickets = await repository.getTickets();
   const ticket = tickets.find((item) => item.id === (request.params.id as string));
 
   if (!ticket) {
     throw new NotFoundError("Ticket nao encontrado");
+  }
+
+  if (request.user?.role === "student" && ticket.requesterId !== request.user?.id) {
+    response.status(403).json({ error: "Acesso proibido: Permissão insuficiente" });
+    return;
   }
 
   const users = await repository.getUsers();
@@ -59,12 +72,23 @@ export async function getTicketById(request: Request, response: Response) {
   response.json(enrichedTicket);
 }
 
-export async function createTicket(request: Request, response: Response) {
+export async function createTicket(request: AuthenticatedRequest, response: Response) {
+  const { requesterId } = request.body;
+  if (request.user?.role === "student" && requesterId !== request.user.id) {
+    response.status(403).json({ error: "Acesso proibido: Não é permitido criar chamados para outros usuários" });
+    return;
+  }
+
   const ticket = await ticketService.createTicket(request.body);
   response.status(201).json(ticket);
 }
 
-export async function updateTicketStatus(request: Request, response: Response) {
+export async function updateTicketStatus(request: AuthenticatedRequest, response: Response) {
+  if (request.user?.role === "student") {
+    response.status(403).json({ error: "Acesso proibido: Permissão insuficiente" });
+    return;
+  }
+
   const { status, authorId, comment } = request.body;
   const ticket = await ticketService.updateTicketStatus(
     request.params.id as string,
@@ -75,7 +99,19 @@ export async function updateTicketStatus(request: Request, response: Response) {
   response.json(ticket);
 }
 
-export async function addTicketComment(request: Request, response: Response) {
+export async function addTicketComment(request: AuthenticatedRequest, response: Response) {
+  const tickets = await repository.getTickets();
+  const ticket = tickets.find((item) => item.id === (request.params.id as string));
+
+  if (!ticket) {
+    throw new NotFoundError("Ticket nao encontrado");
+  }
+
+  if (request.user?.role === "student" && ticket.requesterId !== request.user?.id) {
+    response.status(403).json({ error: "Acesso proibido: Permissão insuficiente" });
+    return;
+  }
+
   const { authorId, message } = request.body;
   const comment = await ticketService.addTicketComment(
     request.params.id as string,
