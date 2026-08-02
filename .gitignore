@@ -11,6 +11,7 @@ COMANDOS_UTEIS.md
 !docs/SUMARIO_SISTEMA.md
 !docs/NEXT_STEPS.md
 !docs/DECISAO_TESTES_E2E.md
+!docs/PLANO_TESTES_E2E.md
 /docs/MANUAL_PROTOCOLOS.md
 docs/MANUAL_PROTOCOLOS.md
 docs/ESTUDO_ANGULAR_REACT.md
@@ -23,3 +24,10 @@ TEACHER_GUIDE.md
 .vite/
 manual-protocolos.md
 issues-*.oxehelp.js
+
+# Playwright
+playwright-report/
+test-results/
+frontend/playwright-report/
+frontend/test-results/
+frontend/forwarder.cjs
