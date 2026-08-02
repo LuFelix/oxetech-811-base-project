@@ -3,6 +3,7 @@ import { DashboardStats } from "./components/DashboardStats";
 import { TicketFilters } from "./components/TicketFilters";
 import { TicketCard } from "./components/TicketCard";
 import { Login } from "./components/Login";
+import { CreateTicketModal } from "./components/CreateTicketModal";
 import { useTheme } from "./context/ThemeContext";
 
 interface User {
@@ -60,6 +61,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   const { theme, toggleTheme } = useTheme();
 
   // Fetch Tickets and Summary (Depends on Filters - only if user is logged in)
@@ -96,7 +100,7 @@ function App() {
         setError(err.message);
         setLoading(false);
       });
-  }, [currentUser, search, category, status]);
+  }, [currentUser, search, category, status, refreshTrigger]);
 
   const handleLogin = (user: User) => {
     localStorage.setItem("oxetech-helpdesk:user", JSON.stringify(user));
@@ -181,9 +185,14 @@ function App() {
         <section>
           <div className="tickets-header">
             <h2 className="tickets-title">Chamados Registrados</h2>
-            <span className="tickets-count">
-              {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <span className="tickets-count">
+                {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
+              </span>
+              <button className="btn-create-ticket" onClick={() => setIsModalOpen(true)}>
+                ➕ Novo Chamado
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -218,6 +227,13 @@ function App() {
           )}
         </section>
       </div>
+
+      <CreateTicketModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        currentUser={currentUser}
+        onTicketCreated={() => setRefreshTrigger((prev) => prev + 1)}
+      />
     </>
   );
 }
