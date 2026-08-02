@@ -4,6 +4,7 @@ import { TicketFilters } from "./components/TicketFilters";
 import { TicketCard } from "./components/TicketCard";
 import { Login } from "./components/Login";
 import { CreateTicketModal } from "./components/CreateTicketModal";
+import { TicketDetails } from "./components/TicketDetails";
 import { useTheme } from "./context/ThemeContext";
 
 interface User {
@@ -63,6 +64,7 @@ function App() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
   const { theme, toggleTheme } = useTheme();
 
@@ -110,6 +112,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem("oxetech-helpdesk:user");
     setCurrentUser(null);
+    setSelectedTicketId(null);
   };
 
   const getRoleBadgeLabel = (role: string) => {
@@ -168,64 +171,81 @@ function App() {
           </div>
         </nav>
 
-        {/* Stats Row */}
-        <DashboardStats summary={summary} />
+        {selectedTicketId ? (
+          <TicketDetails
+            ticketId={selectedTicketId}
+            currentUser={currentUser}
+            onBack={() => {
+              setSelectedTicketId(null);
+              setRefreshTrigger((prev) => prev + 1); // reload stats and list
+            }}
+          />
+        ) : (
+          <>
+            {/* Stats Row */}
+            <DashboardStats summary={summary} />
 
-        {/* Filters */}
-        <TicketFilters
-          search={search}
-          category={category}
-          status={status}
-          onSearchChange={setSearch}
-          onCategoryChange={setCategory}
-          onStatusChange={setStatus}
-        />
+            {/* Filters */}
+            <TicketFilters
+              search={search}
+              category={category}
+              status={status}
+              onSearchChange={setSearch}
+              onCategoryChange={setCategory}
+              onStatusChange={setStatus}
+            />
 
-        {/* Tickets Section */}
-        <section>
-          <div className="tickets-header">
-            <h2 className="tickets-title">Chamados Registrados</h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <span className="tickets-count">
-                {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
-              </span>
-              <button className="btn-create-ticket" onClick={() => setIsModalOpen(true)}>
-                ➕ Novo Chamado
-              </button>
-            </div>
-          </div>
+            {/* Tickets Section */}
+            <section>
+              <div className="tickets-header">
+                <h2 className="tickets-title">Chamados Registrados</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <span className="tickets-count">
+                    {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
+                  </span>
+                  <button className="btn-create-ticket" onClick={() => setIsModalOpen(true)}>
+                    ➕ Novo Chamado
+                  </button>
+                </div>
+              </div>
 
-          {error && (
-            <div className="empty-state">
-              <span className="empty-icon">⚠️</span>
-              <h3>Erro de Conexão</h3>
-              <p>{error}. Verifique se o container do backend está ativo na porta 3000.</p>
-            </div>
-          )}
+              {error && (
+                <div className="empty-state">
+                  <span className="empty-icon">⚠️</span>
+                  <h3>Erro de Conexão</h3>
+                  <p>{error}. Verifique se o container do backend está ativo na porta 3000.</p>
+                </div>
+              )}
 
-          {loading && !error && (
-            <div className="loading-state">
-              <div className="spinner"></div>
-              <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>Buscando dados da API...</p>
-            </div>
-          )}
+              {loading && !error && (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>Buscando dados da API...</p>
+                </div>
+              )}
 
-          {!loading && !error && tickets.length === 0 && (
-            <div className="empty-state">
-              <span className="empty-icon">📂</span>
-              <h3>Nenhum chamado encontrado</h3>
-              <p>Tente alterar os termos de busca ou filtros selecionados.</p>
-            </div>
-          )}
+              {!loading && !error && tickets.length === 0 && (
+                <div className="empty-state">
+                  <span className="empty-icon">📂</span>
+                  <h3>Nenhum chamado encontrado</h3>
+                  <p>Tente alterar os termos de busca ou filtros selecionados.</p>
+                </div>
+              )}
 
-          {!loading && !error && tickets.length > 0 && (
-            <div className="tickets-grid">
-              {tickets.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} />
-              ))}
-            </div>
-          )}
-        </section>
+              {!loading && !error && tickets.length > 0 && (
+                <div className="tickets-grid">
+                  {tickets.map((ticket) => (
+                    <TicketCard
+                      key={ticket.id}
+                      ticket={ticket}
+                      onSelect={() => setSelectedTicketId(ticket.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
 
       <CreateTicketModal
