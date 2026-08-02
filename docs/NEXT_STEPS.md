@@ -53,3 +53,12 @@ Com a tela de **Listagem e Filtros** concluída com sucesso na AV2, temos duas a
 * **Objetivo:** Desenvolver primeiro as telas de Criar Chamado e Adicionar Comentários e, uma vez concluído o fluxo visual, configurar o Playwright para testar o sistema inteiro de uma só vez.
 * **Por que fazer:** Fluxo de desenvolvimento mais natural e ágil. Evita reaberturas sucessivas da suíte de testes E2E, permitindo escrever cenários de ponta a ponta completos (ex: login ➜ criar ticket ➜ adicionar comentário ➜ verificar status) em um único ciclo.
 * **Desvantagem:** Maior volume de código frontend ficará sem testes durante a fase de criação.
+
+---
+
+## 🗺️ Mapa de Progresso (Abordagem B)
+- [x] **Issue #10:** Tela de Login Simulado e Temas (Dark/Light Mode)
+- [x] **Issue #11:** Formulário de Criação de Novo Chamado com Validação
+- [ ] **Issue #12:** Tela de Detalhes do Chamado e Timeline de Comentários
+- [ ] **Issue #13:** Automação de Testes E2E com Playwright
+
