@@ -47,7 +47,10 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
   const fetchTicketDetails = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}`);
+      const token = localStorage.getItem("oxetech-helpdesk:token");
+      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}`, {
+        headers: token ? { "Authorization": `Bearer ${token}` } : {}
+      });
       if (!response.ok) throw new Error("Erro ao buscar detalhes do chamado");
       const data = await response.json();
       setTicket(data);
@@ -69,10 +72,12 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
 
     setSubmittingComment(true);
     try {
+      const token = localStorage.getItem("oxetech-helpdesk:token");
       const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           authorId: currentUser.id,
@@ -106,10 +111,12 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
 
     setSubmittingStatus(true);
     try {
+      const token = localStorage.getItem("oxetech-helpdesk:token");
       const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           status: newStatus,

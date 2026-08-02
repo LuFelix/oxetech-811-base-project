@@ -77,18 +77,21 @@ function App() {
     setLoading(true);
     setError(null);
 
+    const token = localStorage.getItem("oxetech-helpdesk:token");
+    const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+
     const params = new URLSearchParams();
     if (status) params.append("status", status);
     if (category) params.append("category", category);
     if (search) params.append("search", search);
 
-    const ticketsPromise = fetch(`${API_BASE_URL}/tickets?${params.toString()}`)
+    const ticketsPromise = fetch(`${API_BASE_URL}/tickets?${params.toString()}`, { headers })
       .then((res) => {
         if (!res.ok) throw new Error("Falha ao carregar os chamados");
         return res.json();
       });
 
-    const summaryPromise = fetch(`${API_BASE_URL}/tickets/summary`)
+    const summaryPromise = fetch(`${API_BASE_URL}/tickets/summary`, { headers })
       .then((res) => {
         if (!res.ok) throw new Error("Falha ao carregar o resumo");
         return res.json();
@@ -106,13 +109,15 @@ function App() {
       });
   }, [currentUser, search, category, status, refreshTrigger]);
 
-  const handleLogin = (user: User) => {
+  const handleLogin = (user: User, token: string) => {
     localStorage.setItem("oxetech-helpdesk:user", JSON.stringify(user));
+    localStorage.setItem("oxetech-helpdesk:token", token);
     setCurrentUser(user);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("oxetech-helpdesk:user");
+    localStorage.removeItem("oxetech-helpdesk:token");
     setCurrentUser(null);
     setSelectedTicketId(null);
   };

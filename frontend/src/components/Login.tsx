@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 interface User {
@@ -9,45 +9,53 @@ interface User {
 }
 
 interface LoginProps {
-  onLogin: (user: User) => void;
+  onLogin: (user: User, token: string) => void;
   onNavigateToRegister: () => void;
 }
 
 const API_BASE_URL = "http://localhost:3000/api";
 
 export function Login({ onLogin, onNavigateToRegister }: LoginProps) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email.trim() || !password.trim()) {
+      setError("Por favor, preencha o e-mail e a senha.");
+      return;
+    }
+
     setLoading(true);
-    fetch(`${API_BASE_URL}/users`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao carregar os perfis de simulação");
-        return res.json();
-      })
-      .then((data) => {
-        setUsers(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
       });
-  }, []);
 
-  const getRoleBadgeLabel = (role: string) => {
-    if (role === "student") return "Aluno";
-    if (role === "teacher") return "Professor";
-    return "Suporte";
-  };
+      const data = await response.json();
 
-  const getRoleIcon = (role: string) => {
-    if (role === "student") return "🎓";
-    if (role === "teacher") return "👨‍🏫";
-    return "🛠️";
+      if (!response.ok) {
+        throw new Error(data.error || "E-mail ou senha incorretos.");
+      }
+
+      onLogin(data.user, data.token);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,66 +72,83 @@ export function Login({ onLogin, onNavigateToRegister }: LoginProps) {
             <span className="logo">🚀</span>
           </div>
           <h1>Oxetech Helpdesk</h1>
-          <p className="subtitle">Selecione um perfil para simular o acesso</p>
+          <p className="subtitle">Faça login para gerenciar seus chamados</p>
         </header>
 
-        {loading && (
-          <div className="loading-state" style={{ background: "transparent", border: "none" }}>
-            <div className="spinner"></div>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>Buscando perfis...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="empty-state" style={{ background: "transparent", border: "none" }}>
-            <span className="empty-icon">⚠️</span>
-            <h3 style={{ fontSize: "1.1rem" }}>Erro ao carregar perfis</h3>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-              {error}. Certifique-se de que o backend está ativo na porta 3000.
-            </p>
-          </div>
-        )}
-
-        {!loading && !error && (
-          <>
-            <div className="profile-selection-grid">
-              {users.map((user) => (
-                <button
-                  key={user.id}
-                  className="profile-select-card"
-                  onClick={() => onLogin(user)}
-                >
-                  <span className="profile-avatar">{getRoleIcon(user.role)}</span>
-                  <div className="profile-info">
-                    <span className="profile-name">{user.name}</span>
-                    <span className="profile-email">{user.email}</span>
-                  </div>
-                  <span className={`badge badge-role-${user.role} profile-role-badge`}>
-                    {getRoleBadgeLabel(user.role)}
-                  </span>
-                </button>
-              ))}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {error && (
+            <div className="modal-error-badge" style={{ margin: 0 }}>
+              {error}
             </div>
+          )}
 
-            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-              <button
-                type="button"
-                className="btn-back-to-login"
-                onClick={onNavigateToRegister}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--text-secondary)",
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
-                  textDecoration: "underline",
-                }}
-              >
-                Não tem uma conta? Cadastre-se
-              </button>
-            </div>
-          </>
-        )}
+          <div className="form-group">
+            <label htmlFor="login-email">E-mail</label>
+            <input
+              id="login-email"
+              type="email"
+              className="form-control"
+              placeholder="Ex: ana@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="login-password">Senha</label>
+            <input
+              id="login-password"
+              type="password"
+              className="form-control"
+              placeholder="••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{
+              width: "100%",
+              padding: "0.85rem",
+              borderRadius: "14px",
+              fontWeight: 600,
+              marginTop: "0.5rem",
+              background: "var(--primary-gradient)",
+              border: "none",
+              color: "#fff",
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(99, 102, 241, 0.2)",
+            }}
+            disabled={loading}
+          >
+            {loading ? "Acessando..." : "Acessar Helpdesk"}
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: "1rem" }}>
+            <button
+              type="button"
+              className="btn-back-to-login"
+              onClick={onNavigateToRegister}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+                textDecoration: "underline",
+              }}
+              disabled={loading}
+            >
+              Não tem uma conta? Cadastre-se
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

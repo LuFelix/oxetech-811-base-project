@@ -40,10 +40,12 @@ export function CreateTicketModal({ isOpen, onClose, currentUser, onTicketCreate
     setSubmitting(true);
 
     try {
+      const token = localStorage.getItem("oxetech-helpdesk:token");
       const response = await fetch("http://localhost:3000/api/tickets", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           title: title.trim(),
