@@ -59,6 +59,6 @@ Com a tela de **Listagem e Filtros** concluída com sucesso na AV2, temos duas a
 ## 🗺️ Mapa de Progresso (Abordagem B)
 - [x] **Issue #10:** Tela de Login Simulado e Temas (Dark/Light Mode)
 - [x] **Issue #11:** Formulário de Criação de Novo Chamado com Validação
-- [ ] **Issue #12:** Tela de Detalhes do Chamado e Timeline de Comentários
-- [ ] **Issue #13:** Automação de Testes E2E com Playwright
+- [x] **Issue #12:** Tela de Detalhes do Chamado e Timeline de Comentários
+- [x] **Issue #13:** Automação de Testes E2E com Playwright
 
