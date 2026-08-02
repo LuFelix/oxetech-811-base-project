@@ -30,9 +30,10 @@ interface Ticket {
 
 interface TicketCardProps {
   ticket: Ticket;
+  onSelect: () => void;
 }
 
-export function TicketCard({ ticket }: TicketCardProps) {
+export function TicketCard({ ticket, onSelect }: TicketCardProps) {
   const priorityColors = {
     low: "var(--priority-low)",
     medium: "var(--priority-medium)",
@@ -73,7 +74,8 @@ export function TicketCard({ ticket }: TicketCardProps) {
   return (
     <div
       className="ticket-card"
-      style={{ "--priority-color": priorityColors[ticket.priority] } as React.CSSProperties}
+      style={{ "--priority-color": priorityColors[ticket.priority], cursor: "pointer" } as React.CSSProperties}
+      onClick={onSelect}
     >
       <div className="ticket-body">
         <div className="ticket-meta-top">
