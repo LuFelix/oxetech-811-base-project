@@ -1,0 +1,41 @@
+# --- Etapa de Build ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY prisma ./prisma
+RUN npx prisma generate
+COPY tsconfig.json ./
+COPY src ./src
+RUN npm run build
+
+# --- Etapa de Runner (Produção) ---
+FROM node:20-alpine AS runner
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Instalar openssl para gerar os certificados autoassinados locais
+RUN apk add --no-cache openssl
+
+# Gerar chaves e certificado SSL locais para HTTPS interno criptografado
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /app/server.key -out /app/server.crt \
+    -subj "/C=BR/ST=SP/L=SaoPaulo/O=OxeTech/CN=backend" && \
+    chown node:node /app/server.key /app/server.crt
+
+COPY --chown=node:node package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/prisma ./prisma
+COPY --from=builder --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copiar e configurar o entrypoint de inicialização segura
+COPY --chown=node:node entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+USER node
+EXPOSE 3000
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["node", "dist/server.js"]
