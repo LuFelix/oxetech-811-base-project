@@ -14,6 +14,17 @@ interface TicketComment {
   author: User;
 }
 
+interface AuditLog {
+  id: string;
+  ticketId: string;
+  userId: string;
+  action: string;
+  oldValue?: string;
+  newValue?: string;
+  createdAt: string;
+  user?: User;
+}
+
 interface Ticket {
   id: string;
   title: string;
@@ -26,6 +37,7 @@ interface Ticket {
   requester: User;
   assignedTo?: User;
   comments: TicketComment[];
+  auditLogs?: AuditLog[];
 }
 
 interface TicketDetailsProps {
@@ -323,6 +335,56 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
               )}
             </div>
           </div>
+
+          {/* Audit Logs Section */}
+          {ticket.auditLogs && ticket.auditLogs.length > 0 && (
+            <div className="details-status-actions" style={{ marginTop: "1.5rem" }}>
+              <h4>Histórico de Auditoria</h4>
+              <div className="audit-timeline" style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+                {ticket.auditLogs.map((log) => {
+                  const logDate = new Date(log.createdAt).toLocaleString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                  const actionLabels: Record<string, string> = {
+                    status_changed: "Alterou o status",
+                    priority_changed: "Alterou a prioridade",
+                    assignee_changed: "Alterou o responsável",
+                  };
+                  const statusValLabels: Record<string, string> = {
+                    open: "Aberto",
+                    in_progress: "Em Progresso",
+                    resolved: "Resolvido",
+                    closed: "Fechado",
+                  };
+                  const formatVal = (val?: string) => {
+                    if (!val) return "-";
+                    return statusValLabels[val] || val;
+                  };
+
+                  return (
+                    <div key={log.id} className="audit-log-item" style={{
+                      fontSize: "0.85rem",
+                      padding: "0.5rem 0.75rem",
+                      borderRadius: "6px",
+                      background: "rgba(255, 255, 255, 0.03)",
+                      borderLeft: "3px solid var(--accent-primary, #6366f1)"
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem", color: "#94a3b8" }}>
+                        <strong>{log.user?.name || "Sistema"}</strong>
+                        <span>{logDate}</span>
+                      </div>
+                      <div>
+                        {actionLabels[log.action] || log.action}: de <span style={{ textDecoration: "line-through", opacity: 0.6 }}>{formatVal(log.oldValue)}</span> para <strong style={{ color: "var(--accent-primary, #6366f1)" }}>{formatVal(log.newValue)}</strong>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Timeline & Chat comments */}

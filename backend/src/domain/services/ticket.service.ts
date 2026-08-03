@@ -81,6 +81,7 @@ export async function updateTicketStatus(
   }
 
   let authorName = "Suporte";
+  const oldStatus = ticket.status;
   if (authorId) {
     const author = await prisma.user.findUnique({ where: { id: authorId } });
     if (!author) {
@@ -93,6 +94,19 @@ export async function updateTicketStatus(
   ticket.updatedAt = new Date().toISOString();
 
   await repository.updateTicket(ticket);
+
+  if (oldStatus !== newStatus) {
+    const auditLog = {
+      id: generateId("audit"),
+      ticketId: ticket.id,
+      userId: authorId || ticket.requesterId,
+      action: "status_changed",
+      oldValue: oldStatus,
+      newValue: newStatus,
+      createdAt: new Date().toISOString(),
+    };
+    await repository.saveAuditLog(auditLog);
+  }
 
   if (commentText) {
     const comment: TicketComment = {

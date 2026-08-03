@@ -193,7 +193,7 @@ function App() {
         ) : (
           <>
             {/* Stats Row */}
-            <DashboardStats summary={summary} />
+            <DashboardStats summary={summary} tickets={tickets} />
 
             {/* Filters */}
             <TicketFilters

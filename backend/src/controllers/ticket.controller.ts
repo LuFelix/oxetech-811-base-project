@@ -66,8 +66,9 @@ export async function getTicketById(request: AuthenticatedRequest, response: Res
 
   const users = await repository.getUsers();
   const comments = await repository.getComments();
+  const auditLogs = await repository.getAuditLogs();
 
-  const enrichedTicket = mapTicketDetails(ticket, users, comments, true);
+  const enrichedTicket = mapTicketDetails(ticket, users, comments, true, auditLogs);
 
   response.json(enrichedTicket);
 }
