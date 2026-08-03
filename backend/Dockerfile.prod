@@ -8,6 +8,8 @@ RUN npx prisma generate
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
+# Compilar o arquivo de seed para a pasta dist
+RUN npx tsc prisma/seed.ts --outDir dist/prisma --module Node16 --moduleResolution Node16 --target ES2022 --esModuleInterop --ignoreConfig
 
 # --- Etapa de Runner (Produção) ---
 FROM node:20-alpine AS runner
