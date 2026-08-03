@@ -1,0 +1,12 @@
+FROM postgres:16-alpine
+
+# Instalar openssl para gerar o certificado SSL
+RUN apk add --no-cache openssl
+
+# Criar diretório SSL e gerar chaves locais com permissões adequadas
+RUN mkdir -p /var/lib/postgresql/ssl && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /var/lib/postgresql/ssl/server.key -out /var/lib/postgresql/ssl/server.crt \
+    -subj "/C=BR/ST=SP/L=SaoPaulo/O=OxeTech/CN=postgres" && \
+    chown -R postgres:postgres /var/lib/postgresql/ssl && \
+    chmod 600 /var/lib/postgresql/ssl/server.key /var/lib/postgresql/ssl/server.crt
