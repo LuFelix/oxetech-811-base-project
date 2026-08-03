@@ -275,7 +275,7 @@ describe("API Routes Integration Tests", () => {
       expect(response.body.status).toBe("in_progress");
     });
 
-    it("should return 403 if student tries to update ticket status", async () => {
+    it("should return 403 if student tries to update ticket status to invalid non-closed", async () => {
       const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
       vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
 
@@ -283,6 +283,32 @@ describe("API Routes Integration Tests", () => {
         .patch("/api/tickets/1/status")
         .set("Authorization", `Bearer ${tokenStudent}`)
         .send({ status: "resolved" });
+
+      expect(response.status).toBe(403);
+    });
+
+    it("should allow student to close their OWN ticket with a comment", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: "user_ana", name: "Ana", email: "ana@email.com" } as any);
+
+      const response = await request(app)
+        .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({ status: "closed", comment: "Resolvido por mim" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe("closed");
+    });
+
+    it("should return 403 if student tries to close another user's ticket", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_bruno" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+
+      const response = await request(app)
+        .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({ status: "closed", comment: "Desistência" });
 
       expect(response.status).toBe(403);
     });

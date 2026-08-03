@@ -85,14 +85,25 @@ export async function createTicket(request: AuthenticatedRequest, response: Resp
 }
 
 export async function updateTicketStatus(request: AuthenticatedRequest, response: Response) {
+  const ticketId = request.params.id as string;
+  const { status, authorId, comment } = request.body;
+
   if (request.user?.role === "student") {
-    response.status(403).json({ error: "Acesso proibido: Permissão insuficiente" });
-    return;
+    const tickets = await repository.getTickets();
+    const ticket = tickets.find((item) => item.id === ticketId);
+
+    if (!ticket) {
+      throw new NotFoundError("Ticket nao encontrado");
+    }
+
+    if (ticket.requesterId !== request.user.id || status !== "closed") {
+      response.status(403).json({ error: "Acesso proibido: Permissão insuficiente" });
+      return;
+    }
   }
 
-  const { status, authorId, comment } = request.body;
   const ticket = await ticketService.updateTicketStatus(
-    request.params.id as string,
+    ticketId,
     status,
     authorId,
     comment,

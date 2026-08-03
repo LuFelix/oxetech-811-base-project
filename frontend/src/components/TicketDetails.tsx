@@ -267,74 +267,90 @@ export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsPr
           </div>
 
           {/* Status actions */}
-          <div className="details-status-actions">
-            <h4>Ações de Status</h4>
-            <div className="actions-buttons-row">
-              {ticket.status === "open" && (
-                <button
-                  className="btn-submit"
-                  onClick={() => handleUpdateStatus("in_progress")}
-                  disabled={submittingStatus}
-                  style={{ background: "var(--status-in-progress)", color: "#000", boxShadow: "none" }}
-                >
-                  🚀 Iniciar Atendimento
-                </button>
-              )}
-
-              {ticket.status === "in_progress" && (
-                <>
-                  <button
-                    className="btn-submit"
-                    onClick={() => handleUpdateStatus("resolved")}
-                    disabled={submittingStatus}
-                    style={{ background: "var(--status-resolved)", color: "#fff", boxShadow: "none" }}
-                  >
-                    ✅ Resolver Chamado
-                  </button>
+          {/* Status actions */}
+          {((currentUser.role !== "student") || (currentUser.role === "student" && ticket.requester.id === currentUser.id && ticket.status !== "closed")) && (
+            <div className="details-status-actions">
+              <h4>Ações de Status</h4>
+              <div className="actions-buttons-row">
+                {currentUser.role === "student" ? (
                   <button
                     className="btn-cancel"
                     onClick={() => handleUpdateStatus("closed")}
                     disabled={submittingStatus}
-                    style={{ border: "1px solid var(--status-closed)", color: "var(--status-closed)" }}
+                    style={{ border: "1px solid var(--status-closed)", color: "var(--status-closed)", width: "100%" }}
                   >
-                    🔒 Fechar Chamado
+                    🔒 Desistir / Fechar Chamado
                   </button>
-                </>
-              )}
+                ) : (
+                  <>
+                    {ticket.status === "open" && (
+                      <button
+                        className="btn-submit"
+                        onClick={() => handleUpdateStatus("in_progress")}
+                        disabled={submittingStatus}
+                        style={{ background: "var(--status-in-progress)", color: "#000", boxShadow: "none" }}
+                      >
+                        🚀 Iniciar Atendimento
+                      </button>
+                    )}
 
-              {ticket.status === "resolved" && (
-                <>
-                  <button
-                    className="btn-submit"
-                    onClick={() => handleUpdateStatus("closed")}
-                    disabled={submittingStatus}
-                    style={{ background: "var(--status-closed)", color: "#fff", boxShadow: "none" }}
-                  >
-                    🔒 Fechar Chamado
-                  </button>
-                  <button
-                    className="btn-cancel"
-                    onClick={() => handleUpdateStatus("open")}
-                    disabled={submittingStatus}
-                    style={{ border: "1px solid var(--status-open)", color: "var(--status-open)" }}
-                  >
-                    ♻️ Reabrir Chamado
-                  </button>
-                </>
-              )}
+                    {ticket.status === "in_progress" && (
+                      <>
+                        <button
+                          className="btn-submit"
+                          onClick={() => handleUpdateStatus("resolved")}
+                          disabled={submittingStatus}
+                          style={{ background: "var(--status-resolved)", color: "#fff", boxShadow: "none" }}
+                        >
+                          ✅ Resolver Chamado
+                        </button>
+                        <button
+                          className="btn-cancel"
+                          onClick={() => handleUpdateStatus("closed")}
+                          disabled={submittingStatus}
+                          style={{ border: "1px solid var(--status-closed)", color: "var(--status-closed)" }}
+                        >
+                          🔒 Fechar Chamado
+                        </button>
+                      </>
+                    )}
 
-              {ticket.status === "closed" && (
-                <button
-                  className="btn-submit"
-                  onClick={() => handleUpdateStatus("open")}
-                  disabled={submittingStatus}
-                  style={{ background: "var(--status-open)", color: "#fff", boxShadow: "none" }}
-                >
-                  ♻️ Reabrir Chamado
-                </button>
-              )}
+                    {ticket.status === "resolved" && (
+                      <>
+                        <button
+                          className="btn-submit"
+                          onClick={() => handleUpdateStatus("closed")}
+                          disabled={submittingStatus}
+                          style={{ background: "var(--status-closed)", color: "#fff", boxShadow: "none" }}
+                        >
+                          🔒 Fechar Chamado
+                        </button>
+                        <button
+                          className="btn-cancel"
+                          onClick={() => handleUpdateStatus("open")}
+                          disabled={submittingStatus}
+                          style={{ border: "1px solid var(--status-open)", color: "var(--status-open)" }}
+                        >
+                          ♻️ Reabrir Chamado
+                        </button>
+                      </>
+                    )}
+
+                    {ticket.status === "closed" && (
+                      <button
+                        className="btn-submit"
+                        onClick={() => handleUpdateStatus("open")}
+                        disabled={submittingStatus}
+                        style={{ background: "var(--status-open)", color: "#fff", boxShadow: "none" }}
+                      >
+                        ♻️ Reabrir Chamado
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Audit Logs Section */}
           {ticket.auditLogs && ticket.auditLogs.length > 0 && (
