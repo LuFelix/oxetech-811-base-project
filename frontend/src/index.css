@@ -1201,3 +1201,48 @@ body {
   border-top: 1px solid var(--border-color);
   padding-top: 1rem;
 }
+
+/* Tabs Switcher Layout */
+.tabs-container {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  padding: 0.35rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  width: fit-content;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-button.active {
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+[data-theme='light'] .tab-button.active {
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
