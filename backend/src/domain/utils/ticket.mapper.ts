@@ -1,27 +1,36 @@
-import type { Ticket, TicketComment, User } from "../types";
+import type { Ticket, TicketComment, User, AuditLog } from "../types";
 import { sanitizeUser } from "./user.mapper";
 
 export function mapTicketDetails(
   ticket: Ticket,
   users: User[],
   comments: TicketComment[],
-  includeFullComments = false,
+  includeFullDetails = false,
+  auditLogs: AuditLog[] = [],
 ) {
   const requester = sanitizeUser(users.find((user) => user.id === ticket.requesterId));
   const assigned = sanitizeUser(users.find((user) => user.id === ticket.assignedToId));
   const ticketComments = comments.filter((comment) => comment.ticketId === ticket.id);
 
-  if (includeFullComments) {
+  if (includeFullDetails) {
     const commentsWithAuthor = ticketComments.map((comment) => ({
       ...comment,
       author: sanitizeUser(users.find((user) => user.id === comment.authorId)),
     }));
+
+    const ticketAuditLogs = auditLogs
+      .filter((log) => log.ticketId === ticket.id)
+      .map((log) => ({
+        ...log,
+        user: sanitizeUser(users.find((user) => user.id === log.userId)),
+      }));
 
     return {
       ...ticket,
       requester,
       assigned,
       comments: commentsWithAuthor,
+      auditLogs: ticketAuditLogs,
     };
   }
 

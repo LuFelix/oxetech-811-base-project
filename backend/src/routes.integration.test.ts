@@ -25,6 +25,8 @@ vi.mock("./infrastructure/database/prisma.repository", () => ({
   saveTicket: vi.fn(),
   updateTicket: vi.fn(),
   saveComment: vi.fn(),
+  getAuditLogs: vi.fn().mockResolvedValue([]),
+  saveAuditLog: vi.fn(),
 }));
 
 vi.mock("./infrastructure/database/prisma", () => ({
