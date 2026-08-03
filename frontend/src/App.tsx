@@ -67,7 +67,7 @@ function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [showRegister, setShowRegister] = useState(false);
-
+  const [activeTab, setActiveTab] = useState<"tickets" | "dashboard">("tickets");
   const { theme, toggleTheme } = useTheme();
 
   // Fetch Tickets and Summary (Depends on Filters - only if user is logged in)
@@ -181,6 +181,23 @@ function App() {
           </div>
         </nav>
 
+        {!selectedTicketId && (
+          <div className="tabs-container">
+            <button
+              className={`tab-button ${activeTab === "tickets" ? "active" : ""}`}
+              onClick={() => setActiveTab("tickets")}
+            >
+              📋 Fila de Chamados
+            </button>
+            <button
+              className={`tab-button ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              📊 Painel Geral
+            </button>
+          </div>
+        )}
+
         {selectedTicketId ? (
           <TicketDetails
             ticketId={selectedTicketId}
@@ -190,11 +207,10 @@ function App() {
               setRefreshTrigger((prev) => prev + 1); // reload stats and list
             }}
           />
+        ) : activeTab === "dashboard" ? (
+          <DashboardStats summary={summary} tickets={tickets} />
         ) : (
           <>
-            {/* Stats Row */}
-            <DashboardStats summary={summary} tickets={tickets} />
-
             {/* Filters */}
             <TicketFilters
               search={search}
