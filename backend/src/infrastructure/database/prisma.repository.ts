@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import type { User, Ticket, TicketComment } from "../../domain/types";
+import type { User, Ticket, TicketComment, AuditLog } from "../../domain/types";
 
 export async function getUsers(): Promise<User[]> {
   return prisma.user.findMany();
@@ -89,4 +89,30 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     where: { email },
   });
   return row as User | null;
+}
+
+export async function saveAuditLog(log: AuditLog): Promise<void> {
+  await prisma.auditLog.create({
+    data: {
+      id: log.id,
+      ticketId: log.ticketId,
+      userId: log.userId,
+      action: log.action,
+      oldValue: log.oldValue || null,
+      newValue: log.newValue || null,
+      createdAt: new Date(log.createdAt),
+    },
+  });
+}
+
+export async function getAuditLogs(): Promise<AuditLog[]> {
+  const rows = await prisma.auditLog.findMany({
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((row) => ({
+    ...row,
+    oldValue: row.oldValue ?? undefined,
+    newValue: row.newValue ?? undefined,
+    createdAt: row.createdAt.toISOString(),
+  }));
 }

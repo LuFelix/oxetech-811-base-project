@@ -37,6 +37,7 @@ model User {
   requestedTickets Ticket[]        @relation("Requester")
   assignedTickets  Ticket[]        @relation("Assignee")
   comments         TicketComment[]
+  auditLogs        AuditLog[]
 }
 
 model Ticket {
@@ -54,6 +55,7 @@ model Ticket {
   requester  User            @relation("Requester", fields: [requesterId], references: [id])
   assignedTo User?           @relation("Assignee", fields: [assignedToId], references: [id])
   comments   TicketComment[]
+  auditLogs  AuditLog[]
 }
 
 model TicketComment {
@@ -63,6 +65,19 @@ model TicketComment {
   message   String
   createdAt DateTime
 
-  ticket Ticket @relation(fields: [ticketId], references: [id])
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   author User   @relation(fields: [authorId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id
+  ticketId  String
+  userId    String
+  action    String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 }

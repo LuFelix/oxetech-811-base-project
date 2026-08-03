@@ -49,4 +49,24 @@ describe("ticket.mapper", () => {
     expect(result.comments[0].author?.id).toBe("user_ana");
     expect((result.comments[0].author as any).password).toBeUndefined();
   });
+
+  it("should map audit logs and sanitize audit log user password", () => {
+    const mockAudit = {
+      id: "audit_001",
+      ticketId: "ticket_001",
+      userId: "user_ana",
+      action: "status_changed",
+      oldValue: "open",
+      newValue: "in_progress",
+      createdAt: "2026-05-01T10:05:00.000Z",
+    };
+
+    const result = mapTicketDetails(mockTicket, [mockUser], [mockComment], true, [mockAudit]) as any;
+
+    expect(result.auditLogs).toBeDefined();
+    expect(result.auditLogs[0].user).toBeDefined();
+    expect(result.auditLogs[0].user?.id).toBe("user_ana");
+    expect(result.auditLogs[0].user?.password).toBeUndefined();
+    expect(result.auditLogs[0].action).toBe("status_changed");
+  });
 });

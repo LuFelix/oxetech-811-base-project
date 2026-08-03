@@ -9,6 +9,7 @@ vi.mock("../../infrastructure/database/prisma.repository", () => ({
   updateTicket: vi.fn(),
   saveComment: vi.fn(),
   getTickets: vi.fn(),
+  saveAuditLog: vi.fn(),
 }));
 
 vi.mock("../../infrastructure/database/prisma", () => ({

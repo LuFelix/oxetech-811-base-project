@@ -24,6 +24,16 @@ export interface TicketComment {
   createdAt: string;
 }
 
+export interface AuditLog {
+  id: string;
+  ticketId: string;
+  userId: string;
+  action: string;
+  oldValue?: string;
+  newValue?: string;
+  createdAt: string;
+}
+
 export interface Ticket {
   id: string;
   title: string;
