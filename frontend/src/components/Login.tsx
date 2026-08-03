@@ -13,7 +13,7 @@ interface LoginProps {
   onNavigateToRegister: () => void;
 }
 
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export function Login({ onLogin, onNavigateToRegister }: LoginProps) {
   const { theme, toggleTheme } = useTheme();

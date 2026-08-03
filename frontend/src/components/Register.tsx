@@ -5,7 +5,7 @@ interface RegisterProps {
   onBackToLogin: () => void;
 }
 
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export function Register({ onBackToLogin }: RegisterProps) {
   const { theme, toggleTheme } = useTheme();
@@ -151,6 +151,9 @@ export function Register({ onBackToLogin }: RegisterProps) {
                 onChange={(e) => setInviteCode(e.target.value)}
                 disabled={loading}
               />
+              <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.25rem", display: "block" }}>
+                Códigos padrão: <strong>OXE-SUP-2026</strong> (Suporte) ou <strong>OXE-PROF-2026</strong> (Professor).
+              </span>
             </div>
 
             <button
