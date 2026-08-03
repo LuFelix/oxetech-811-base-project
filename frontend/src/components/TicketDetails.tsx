@@ -46,7 +46,7 @@ interface TicketDetailsProps {
   onBack: () => void;
 }
 
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export function TicketDetails({ ticketId, currentUser, onBack }: TicketDetailsProps) {
   const [ticket, setTicket] = useState<Ticket | null>(null);

@@ -42,6 +42,8 @@ services:
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
       - MAIL_FROM=${MAIL_FROM:-noreply@oxetech.com.br}
+      - SUPPORT_INVITE_CODE=${SUPPORT_INVITE_CODE:-OXE-SUP-2026}
+      - TEACHER_INVITE_CODE=${TEACHER_INVITE_CODE:-OXE-PROF-2026}
     networks:
       - helpdesk_prod_net
     depends_on:
@@ -53,6 +55,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_URL=${VITE_API_URL:-https://api-oxehelp.tiweb.app.br/api}
     container_name: front_prod
     restart: unless-stopped
     ports:
