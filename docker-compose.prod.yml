@@ -1,0 +1,81 @@
+services:
+  # Banco de Dados de Produção
+  postgres_prod:
+    build:
+      context: ./database
+      dockerfile: Dockerfile.prod
+    container_name: postgres_prod
+    restart: unless-stopped
+    command: postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/ssl/server.crt -c ssl_key_file=/var/lib/postgresql/ssl/server.key
+    environment:
+      POSTGRES_USER: ${DB_USER:-oxetech}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-oxetech}
+      POSTGRES_DB: ${DB_NAME:-oxetech}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - helpdesk_prod_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-oxetech} -d $${POSTGRES_DB:-oxetech}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # API Backend de Produção
+  back_prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: back_prod
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgresql://${DB_USER:-oxetech}:${DB_PASSWORD:-oxetech}@postgres_prod:5432/${DB_NAME:-oxetech}?schema=public&sslmode=require&sslaccept=accept_invalid_certs
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key-prod-123}
+      - SMTP_HOST=${SMTP_HOST:-mailpit_prod}
+      - SMTP_PORT=${SMTP_PORT:-1025}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - MAIL_FROM=${MAIL_FROM:-noreply@oxetech.com.br}
+    networks:
+      - helpdesk_prod_net
+    depends_on:
+      postgres_prod:
+        condition: service_healthy
+
+  # Frontend Web de Produção
+  front_prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: front_prod
+    restart: unless-stopped
+    ports:
+      - "8081:443"
+    networks:
+      - helpdesk_prod_net
+    depends_on:
+      - back_prod
+
+  # SMTP / Mailpit para Produção (Opcional/Testes na VPS)
+  mailpit_prod:
+    image: axllent/mailpit:latest
+    container_name: mailpit_prod
+    restart: unless-stopped
+    ports:
+      - "1026:1025"
+      - "8026:8025"
+    networks:
+      - helpdesk_prod_net
+
+volumes:
+  postgres_data_prod:
+
+networks:
+  helpdesk_prod_net:
+    driver: bridge

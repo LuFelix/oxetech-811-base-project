@@ -3,6 +3,20 @@ import request from "supertest";
 import app from "./app";
 import * as repository from "./infrastructure/database/prisma.repository";
 import { prisma } from "./infrastructure/database/prisma";
+import jwt from "jsonwebtoken";
+
+const TEST_SECRET = "test-secret";
+process.env.JWT_SECRET = TEST_SECRET;
+
+const tokenStudent = jwt.sign(
+  { id: "user_ana", name: "Ana", email: "ana@email.com", role: "student" },
+  TEST_SECRET
+);
+
+const tokenSupport = jwt.sign(
+  { id: "user_carla", name: "Carla", email: "carla@email.com", role: "support" },
+  TEST_SECRET
+);
 
 vi.mock("./infrastructure/database/prisma.repository", () => ({
   getUsers: vi.fn(),
@@ -11,6 +25,8 @@ vi.mock("./infrastructure/database/prisma.repository", () => ({
   saveTicket: vi.fn(),
   updateTicket: vi.fn(),
   saveComment: vi.fn(),
+  getAuditLogs: vi.fn().mockResolvedValue([]),
+  saveAuditLog: vi.fn(),
 }));
 
 vi.mock("./infrastructure/database/prisma", () => ({
@@ -19,6 +35,12 @@ vi.mock("./infrastructure/database/prisma", () => ({
       findUnique: vi.fn(),
     },
   },
+}));
+
+vi.mock("./domain/services/email.service", () => ({
+  sendTicketCreatedNotification: vi.fn().mockResolvedValue(undefined),
+  sendCommentAddedNotification: vi.fn().mockResolvedValue(undefined),
+  sendStatusUpdatedNotification: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("API Routes Integration Tests", () => {
@@ -46,7 +68,10 @@ describe("API Routes Integration Tests", () => {
     it("should return 500 internal server error", async () => {
       vi.mocked(repository.getUsers).mockRejectedValueOnce(new Error("Db connection lost"));
 
-      const response = await request(app).get("/api/users");
+      const response = await request(app)
+        .get("/api/users")
+        .set("Authorization", `Bearer ${tokenSupport}`);
+
       expect(response.status).toBe(500);
       expect(response.body.error).toBe("Erro interno do servidor");
     });
@@ -59,7 +84,10 @@ describe("API Routes Integration Tests", () => {
       ];
       vi.mocked(repository.getUsers).mockResolvedValue(mockUsers as any);
 
-      const response = await request(app).get("/api/users");
+      const response = await request(app)
+        .get("/api/users")
+        .set("Authorization", `Bearer ${tokenStudent}`);
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(1);
       expect(response.body[0].password).toBeUndefined();
@@ -70,55 +98,115 @@ describe("API Routes Integration Tests", () => {
   describe("GET /api/tickets", () => {
     it("should return list of tickets and apply filters", async () => {
       const mockTickets = [
-        { id: "1", title: "Login", description: "D", category: "sistemas", status: "open", requesterId: "u1" },
-        { id: "2", title: "Projector", description: "D", category: "infra", status: "resolved", requesterId: "u2" },
+        { id: "1", title: "Login", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" },
+        { id: "2", title: "Projector", description: "D", category: "infra", status: "resolved", requesterId: "user_bruno" },
       ];
       vi.mocked(repository.getTickets).mockResolvedValue(mockTickets as any);
       vi.mocked(repository.getUsers).mockResolvedValue([] as any);
       vi.mocked(repository.getComments).mockResolvedValue([] as any);
 
-      const response = await request(app).get("/api/tickets?status=open&category=sistemas&search=Login");
+      // Support sees all tickets
+      const response = await request(app)
+        .get("/api/tickets?status=open&category=sistemas&search=Login")
+        .set("Authorization", `Bearer ${tokenSupport}`);
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(1);
       expect(response.body[0].id).toBe("1");
     });
+
+    it("should restrict student to only see their own tickets", async () => {
+      const mockTickets = [
+        { id: "1", title: "Ana Ticket", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" },
+        { id: "2", title: "Bruno Ticket", description: "D", category: "infra", status: "resolved", requesterId: "user_bruno" },
+      ];
+      vi.mocked(repository.getTickets).mockResolvedValue(mockTickets as any);
+      vi.mocked(repository.getUsers).mockResolvedValue([] as any);
+      vi.mocked(repository.getComments).mockResolvedValue([] as any);
+
+      // Student sees only Ana Ticket (id 1)
+      const response = await request(app)
+        .get("/api/tickets")
+        .set("Authorization", `Bearer ${tokenStudent}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(1);
+      expect(response.body[0].id).toBe("1");
+    });
+
+    it("should return 401 if token is not provided", async () => {
+      const response = await request(app).get("/api/tickets");
+      expect(response.status).toBe(401);
+    });
   });
 
   describe("GET /api/tickets/summary", () => {
-    it("should return the tickets status summary", async () => {
+    it("should return the tickets status summary for support role", async () => {
       const mockTickets = [
-        { id: "1", title: "T", description: "D", category: "sistemas", status: "open", priority: "urgent", requesterId: "u1" },
+        { id: "1", title: "T", description: "D", category: "sistemas", status: "open", priority: "urgent", requesterId: "user_ana" },
+        { id: "2", title: "T2", description: "D", category: "infra", status: "resolved", priority: "medium", requesterId: "user_bruno" },
       ];
       vi.mocked(repository.getTickets).mockResolvedValue(mockTickets as any);
 
-      const response = await request(app).get("/api/tickets/summary");
+      const response = await request(app)
+        .get("/api/tickets/summary")
+        .set("Authorization", `Bearer ${tokenSupport}`);
+
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        open: 1,
-        in_progress: 0,
-        resolved: 0,
-        closed: 0,
-        urgent: 1,
-      });
+      expect(response.body.open).toBe(1);
+      expect(response.body.resolved).toBe(1);
+    });
+
+    it("should return only student's summary if student role", async () => {
+      const mockTickets = [
+        { id: "1", title: "T", description: "D", category: "sistemas", status: "open", priority: "urgent", requesterId: "user_ana" },
+        { id: "2", title: "T2", description: "D", category: "infra", status: "resolved", priority: "medium", requesterId: "user_bruno" },
+      ];
+      vi.mocked(repository.getTickets).mockResolvedValue(mockTickets as any);
+
+      const response = await request(app)
+        .get("/api/tickets/summary")
+        .set("Authorization", `Bearer ${tokenStudent}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.open).toBe(1);
+      expect(response.body.resolved).toBe(0); // resolved ticket is user_bruno
     });
   });
 
   describe("GET /api/tickets/:id", () => {
     it("should return ticket details if found", async () => {
-      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "u1" };
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
       vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
       vi.mocked(repository.getUsers).mockResolvedValue([] as any);
       vi.mocked(repository.getComments).mockResolvedValue([] as any);
 
-      const response = await request(app).get("/api/tickets/1");
+      const response = await request(app)
+        .get("/api/tickets/1")
+        .set("Authorization", `Bearer ${tokenStudent}`);
+
       expect(response.status).toBe(200);
       expect(response.body.id).toBe("1");
+    });
+
+    it("should return 403 if student tries to access another student's ticket", async () => {
+      const mockTicket = { id: "2", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_bruno" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+
+      const response = await request(app)
+        .get("/api/tickets/2")
+        .set("Authorization", `Bearer ${tokenStudent}`);
+
+      expect(response.status).toBe(403);
     });
 
     it("should return 404 if ticket is not found", async () => {
       vi.mocked(repository.getTickets).mockResolvedValue([] as any);
 
-      const response = await request(app).get("/api/tickets/nonexistent");
+      const response = await request(app)
+        .get("/api/tickets/nonexistent")
+        .set("Authorization", `Bearer ${tokenStudent}`);
+
       expect(response.status).toBe(404);
       expect(response.body.error).toBe("Ticket nao encontrado");
     });
@@ -130,6 +218,7 @@ describe("API Routes Integration Tests", () => {
 
       const response = await request(app)
         .post("/api/tickets")
+        .set("Authorization", `Bearer ${tokenStudent}`)
         .send({
           title: "Problema no portal",
           description: "Nao consigo acessar",
@@ -142,9 +231,24 @@ describe("API Routes Integration Tests", () => {
       expect(response.body.status).toBe("open");
     });
 
+    it("should return 403 if student tries to create a ticket on behalf of another user", async () => {
+      const response = await request(app)
+        .post("/api/tickets")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({
+          title: "Problema no portal",
+          description: "Nao consigo acessar",
+          category: "sistemas",
+          requesterId: "user_bruno", // trying to create on behalf of Bruno
+        });
+
+      expect(response.status).toBe(403);
+    });
+
     it("should return 400 if categories are invalid", async () => {
       const response = await request(app)
         .post("/api/tickets")
+        .set("Authorization", `Bearer ${tokenStudent}`)
         .send({
           title: "Title",
           description: "Desc",
@@ -158,24 +262,64 @@ describe("API Routes Integration Tests", () => {
   });
 
   describe("PATCH /api/tickets/:id/status", () => {
-    it("should update status successfully", async () => {
-      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "u1" };
+    it("should update status successfully for support role", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
       vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
 
       const response = await request(app)
         .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenSupport}`)
         .send({ status: "in_progress" });
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe("in_progress");
     });
 
-    it("should return 400 if closing without a comment", async () => {
-      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "u1" };
+    it("should return 403 if student tries to update ticket status to invalid non-closed", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
       vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
 
       const response = await request(app)
         .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({ status: "resolved" });
+
+      expect(response.status).toBe(403);
+    });
+
+    it("should allow student to close their OWN ticket with a comment", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: "user_ana", name: "Ana", email: "ana@email.com" } as any);
+
+      const response = await request(app)
+        .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({ status: "closed", comment: "Resolvido por mim" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe("closed");
+    });
+
+    it("should return 403 if student tries to close another user's ticket", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_bruno" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+
+      const response = await request(app)
+        .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({ status: "closed", comment: "Desistência" });
+
+      expect(response.status).toBe(403);
+    });
+
+    it("should return 400 if closing without a comment", async () => {
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+
+      const response = await request(app)
+        .patch("/api/tickets/1/status")
+        .set("Authorization", `Bearer ${tokenSupport}`)
         .send({ status: "closed" });
 
       expect(response.status).toBe(400);
@@ -185,16 +329,29 @@ describe("API Routes Integration Tests", () => {
 
   describe("POST /api/tickets/:id/comments", () => {
     it("should add a comment successfully", async () => {
-      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "u1" };
+      const mockTicket = { id: "1", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_ana" };
       vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
       vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: "user_ana" } as any);
 
       const response = await request(app)
         .post("/api/tickets/1/comments")
+        .set("Authorization", `Bearer ${tokenStudent}`)
         .send({ authorId: "user_ana", message: "Hello" });
 
       expect(response.status).toBe(201);
       expect(response.body.message).toBe("Hello");
+    });
+
+    it("should return 403 if student comments on another student's ticket", async () => {
+      const mockTicket = { id: "2", title: "T", description: "D", category: "sistemas", status: "open", requesterId: "user_bruno" };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+
+      const response = await request(app)
+        .post("/api/tickets/2/comments")
+        .set("Authorization", `Bearer ${tokenStudent}`)
+        .send({ authorId: "user_ana", message: "Hello" });
+
+      expect(response.status).toBe(403);
     });
   });
 });

@@ -8,7 +8,14 @@ docs/*
 COMANDOS_UTEIS.md
 !docs/CHECKPOINTS.md
 !docs/TESTS_README.md
+!docs/SUMARIO_SISTEMA.md
+!docs/NEXT_STEPS.md
+!docs/DECISAO_TESTES_E2E.md
+!docs/PLANO_TESTES_E2E.md
+!docs/TESTE_E2E_01.md
 /docs/MANUAL_PROTOCOLOS.md
+docs/MANUAL_PROTOCOLOS.md
+docs/ESTUDO_ANGULAR_REACT.md
 /docs/AV1.MD
 /docs/PLANO-AV1.md
 /docs/PLANO-AV2.md
@@ -16,3 +23,12 @@ issues-numerar.json
 issues-todo.json
 TEACHER_GUIDE.md
 .vite/
+manual-protocolos.md
+issues-*.oxehelp.js
+
+# Playwright
+playwright-report/
+test-results/
+frontend/playwright-report/
+frontend/test-results/
+frontend/forwarder.cjs

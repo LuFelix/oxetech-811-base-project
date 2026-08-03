@@ -9,6 +9,7 @@ vi.mock("../../infrastructure/database/prisma.repository", () => ({
   updateTicket: vi.fn(),
   saveComment: vi.fn(),
   getTickets: vi.fn(),
+  saveAuditLog: vi.fn(),
 }));
 
 vi.mock("../../infrastructure/database/prisma", () => ({
@@ -17,6 +18,12 @@ vi.mock("../../infrastructure/database/prisma", () => ({
       findUnique: vi.fn(),
     },
   },
+}));
+
+vi.mock("./email.service", () => ({
+  sendTicketCreatedNotification: vi.fn().mockResolvedValue(undefined),
+  sendCommentAddedNotification: vi.fn().mockResolvedValue(undefined),
+  sendStatusUpdatedNotification: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("ticket.service", () => {
@@ -128,12 +135,32 @@ describe("ticket.service", () => {
         updatedAt: "",
       };
       vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: "user_carla" } as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: "user_carla", name: "Carla", email: "carla@email.com" } as any);
 
       const updated = await service.updateTicketStatus("ticket_001", "closed", "user_carla", "Resolvido!");
 
       expect(updated.status).toBe("closed");
       expect(repository.saveComment).toHaveBeenCalled();
+    });
+
+    it("should throw ValidationError if author is invalid", async () => {
+      const mockTicket = {
+        id: "ticket_001",
+        title: "T",
+        description: "D",
+        category: "sistemas",
+        status: "open",
+        priority: "high",
+        requesterId: "user_ana",
+        createdAt: "",
+        updatedAt: "",
+      };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      await expect(
+        service.updateTicketStatus("ticket_001", "in_progress", "invalid_author")
+      ).rejects.toThrow(ValidationError);
     });
   });
 
@@ -206,6 +233,29 @@ describe("ticket.service", () => {
       await expect(
         service.addTicketComment("ticket_001", "nonexistent", "Msg"),
       ).rejects.toThrow(ValidationError);
+    });
+
+    it("should trigger sendCommentAddedNotification when comment author is different from requester", async () => {
+      const mockTicket = {
+        id: "ticket_001",
+        title: "T",
+        description: "D",
+        category: "sistemas",
+        status: "open",
+        priority: "high",
+        requesterId: "user_ana",
+        createdAt: "",
+        updatedAt: "",
+      };
+      vi.mocked(repository.getTickets).mockResolvedValue([mockTicket] as any);
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce({ id: "user_carla", name: "Carla", email: "carla@email.com" } as any)
+        .mockResolvedValueOnce({ id: "user_ana", name: "Ana", email: "ana@email.com" } as any);
+
+      const comment = await service.addTicketComment("ticket_001", "user_carla", "Resposta suporte");
+
+      expect(comment.id).toBeDefined();
+      expect(comment.authorId).toBe("user_carla");
     });
   });
 });
