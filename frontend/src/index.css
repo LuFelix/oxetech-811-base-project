@@ -419,6 +419,12 @@ body {
   margin-bottom: 1.25rem;
 }
 
+.tickets-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .tickets-title {
   font-size: 1.25rem;
   font-weight: 700;
@@ -1373,7 +1379,16 @@ body {
     padding: 1rem 0.75rem; /* Reduz espaçamento externo nas laterais da tela */
   }
   .tickets-header {
-    padding: 0 0.5rem; /* Recua o titulo e o botao Novo Chamado da borda da tela */
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .tickets-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .btn-create-ticket {
+    margin-right: 0.5rem; /* Recua o botão Novo Chamado da borda direita */
   }
   .top-navbar {
     padding: 0.75rem 1.25rem;

@@ -242,7 +242,7 @@ function App() {
             <section>
               <div className="tickets-header">
                 <h2 className="tickets-title">Chamados Registrados</h2>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <div className="tickets-header-actions">
                   <span className="tickets-count">
                     {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
                   </span>
