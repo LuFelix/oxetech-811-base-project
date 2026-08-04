@@ -115,6 +115,8 @@ body {
   border-radius: 20px;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  z-index: 100;
 }
 
 .navbar-brand {
@@ -1356,4 +1358,50 @@ body {
 [data-theme='light'] .tab-button.active {
   color: #fff;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+/* Responsividade Mobile para a Navbar Superior */
+@media (max-width: 768px) {
+  .top-navbar {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+    border-radius: 16px;
+  }
+  .navbar-brand h1 {
+    font-size: 1.15rem;
+  }
+  .navbar-actions {
+    gap: 0.75rem;
+  }
+  .theme-toggle-text {
+    display: none; /* Esconder texto e deixar apenas o emoji no mobile */
+  }
+  .theme-toggle-btn {
+    padding: 0.5rem; /* Botão quadrado compacto */
+    border-radius: 10px;
+  }
+  .profile-menu-trigger {
+    padding: 0.4rem 0.6rem;
+    border-radius: 10px;
+  }
+  .profile-menu-trigger .user-name {
+    font-size: 0.75rem;
+  }
+  .profile-menu-trigger .role-name {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 580px) {
+  .profile-menu-trigger .user-info-text,
+  .profile-menu-trigger .chevron-icon {
+    display: none; /* Exibe apenas o circulo do avatar em telas muito pequenas */
+  }
+  .profile-menu-trigger {
+    padding: 0.35rem;
+    border-radius: 50%; /* Transforma o acionador em um circulo */
+  }
+  .profile-dropdown {
+    width: 200px;
+  }
 }

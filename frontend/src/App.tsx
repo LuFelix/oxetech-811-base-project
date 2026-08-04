@@ -163,7 +163,7 @@ function App() {
           <div className="navbar-actions">
             {/* Theme Toggle */}
             <button className="theme-toggle-btn" onClick={toggleTheme} title="Alternar Tema">
-              {theme === "dark" ? "☀️ Claro" : "🌙 Escuro"}
+              {theme === "dark" ? "☀️" : "🌙"} <span className="theme-toggle-text">{theme === "dark" ? "Claro" : "Escuro"}</span>
             </button>
 
             {/* User Profile Dropdown Menu */}
