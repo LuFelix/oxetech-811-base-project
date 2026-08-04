@@ -1372,6 +1372,9 @@ body {
   .app-container {
     padding: 1rem 0.75rem; /* Reduz espaçamento externo nas laterais da tela */
   }
+  .tickets-header {
+    padding: 0 0.5rem; /* Recua o titulo e o botao Novo Chamado da borda da tela */
+  }
   .top-navbar {
     padding: 0.75rem 1.25rem;
     margin-bottom: 1.25rem;
