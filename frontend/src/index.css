@@ -1360,8 +1360,11 @@ body {
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-/* Responsividade Mobile para a Navbar Superior */
+/* Responsividade Mobile Geral e Navbar */
 @media (max-width: 768px) {
+  .app-container {
+    padding: 1rem 0.75rem; /* Reduz espaçamento externo nas laterais da tela */
+  }
   .top-navbar {
     padding: 0.75rem 1.25rem;
     margin-bottom: 1.25rem;
@@ -1389,6 +1392,14 @@ body {
   }
   .profile-menu-trigger .role-name {
     font-size: 0.65rem;
+  }
+  /* Estreitar os cards de chamados no mobile */
+  .tickets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .ticket-body {
+    padding: 1.25rem;
   }
 }
 
