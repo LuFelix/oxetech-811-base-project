@@ -169,7 +169,7 @@ function App() {
             {/* User Profile Dropdown Menu */}
             <div className="user-profile-menu-container">
               <button 
-                className={`profile-menu-trigger ${isProfileMenuOpen ? 'active' : ''}`} 
+                className={`profile-menu-trigger user-profile-nav ${isProfileMenuOpen ? 'active' : ''}`} 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 title="Menu do Usuário"
               >
