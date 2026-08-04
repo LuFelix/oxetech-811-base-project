@@ -204,13 +204,13 @@ function App() {
               className={`tab-button ${activeTab === "tickets" ? "active" : ""}`}
               onClick={() => setActiveTab("tickets")}
             >
-              📋 Fila de Chamados
+              <span className="tab-icon">📋</span> Fila de Chamados
             </button>
             <button
               className={`tab-button ${activeTab === "dashboard" ? "active" : ""}`}
               onClick={() => setActiveTab("dashboard")}
             >
-              📊 Painel Geral
+              <span className="tab-icon">📊</span> Painel Geral
             </button>
           </div>
         )}
@@ -244,11 +244,11 @@ function App() {
                 <h2 className="tickets-title">Chamados Registrados</h2>
                 <div className="tickets-header-actions">
                   <span className="tickets-count">
-                    {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
                     <span className="badge-icon">🎫</span>
+                    {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
                   </span>
                   <button className="btn-create-ticket" onClick={() => setIsModalOpen(true)}>
-                    <span className="btn-icon">➕</span> Novo Chamado
+                    <span className="btn-icon">+</span> Novo Chamado
                   </button>
                 </div>
               </div>
