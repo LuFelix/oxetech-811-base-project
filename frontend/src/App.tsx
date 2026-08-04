@@ -69,6 +69,7 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [activeTab, setActiveTab] = useState<"tickets" | "dashboard">("tickets");
   const { theme, toggleTheme } = useTheme();
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   // Fetch Tickets and Summary (Depends on Filters - only if user is logged in)
   useEffect(() => {
@@ -162,22 +163,38 @@ function App() {
           <div className="navbar-actions">
             {/* Theme Toggle */}
             <button className="theme-toggle-btn" onClick={toggleTheme} title="Alternar Tema">
-              {theme === "dark" ? "☀️ Claro" : "🌙 Escuro"}
+              {theme === "dark" ? "☀️" : "🌙"} <span className="theme-toggle-text">{theme === "dark" ? "Claro" : "Escuro"}</span>
             </button>
 
-            {/* Simulated User Info */}
-            <div className="user-profile-nav">
-              <div className="avatar-circle">{getRoleIcon(currentUser.role)}</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{currentUser.name}</span>
-                <span className="role-name">{getRoleBadgeLabel(currentUser.role)}</span>
-              </div>
+            {/* User Profile Dropdown Menu */}
+            <div className="user-profile-menu-container">
+              <button 
+                className={`profile-menu-trigger ${isProfileMenuOpen ? 'active' : ''}`} 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                title="Menu do Usuário"
+              >
+                <div className="avatar-circle">{getRoleIcon(currentUser.role)}</div>
+                <div className="user-info-text">
+                  <span className="user-name">{currentUser.name}</span>
+                  <span className="role-name">{getRoleBadgeLabel(currentUser.role)}</span>
+                </div>
+                <span className="chevron-icon">{isProfileMenuOpen ? "▲" : "▼"}</span>
+              </button>
+
+              {isProfileMenuOpen && (
+                <div className="profile-dropdown">
+                  <div className="dropdown-header">
+                    <span className="dropdown-user-name">{currentUser.name}</span>
+                    <span className="dropdown-user-email">{currentUser.email}</span>
+                    <span className="dropdown-user-role-badge">{getRoleBadgeLabel(currentUser.role)}</span>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item logout" onClick={handleLogout}>
+                    🚪 Sair da Conta
+                  </button>
+                </div>
+              )}
             </div>
-
-            {/* Logout */}
-            <button className="btn-logout" onClick={handleLogout}>
-              Sair
-            </button>
           </div>
         </nav>
 
@@ -187,13 +204,13 @@ function App() {
               className={`tab-button ${activeTab === "tickets" ? "active" : ""}`}
               onClick={() => setActiveTab("tickets")}
             >
-              📋 Fila de Chamados
+              <span className="tab-icon">📋</span> Fila de Chamados
             </button>
             <button
               className={`tab-button ${activeTab === "dashboard" ? "active" : ""}`}
               onClick={() => setActiveTab("dashboard")}
             >
-              📊 Painel Geral
+              <span className="tab-icon">📊</span> Painel Geral
             </button>
           </div>
         )}
@@ -225,12 +242,13 @@ function App() {
             <section>
               <div className="tickets-header">
                 <h2 className="tickets-title">Chamados Registrados</h2>
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <div className="tickets-header-actions">
                   <span className="tickets-count">
+                    <span className="badge-icon">🎫</span>
                     {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
                   </span>
                   <button className="btn-create-ticket" onClick={() => setIsModalOpen(true)}>
-                    ➕ Novo Chamado
+                    <span className="btn-icon">+</span> Novo Chamado
                   </button>
                 </div>
               </div>
