@@ -245,9 +245,10 @@ function App() {
                 <div className="tickets-header-actions">
                   <span className="tickets-count">
                     {loading ? "Carregando..." : `${tickets.length} chamados encontrados`}
+                    <span className="badge-icon">🎫</span>
                   </span>
                   <button className="btn-create-ticket" onClick={() => setIsModalOpen(true)}>
-                    ➕ Novo Chamado
+                    <span className="btn-icon">➕</span> Novo Chamado
                   </button>
                 </div>
               </div>

@@ -435,9 +435,18 @@ body {
   font-size: 0.85rem;
   color: var(--text-secondary);
   background: rgba(51, 65, 85, 0.1);
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 9999px;
   border: 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tickets-count .badge-icon {
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .tickets-grid {
@@ -1029,17 +1038,25 @@ body {
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   border: none;
   color: #fff;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.1rem;
   border-radius: 12px;
   font-family: inherit;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
+}
+
+.btn-create-ticket .btn-icon {
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
 }
 
 .btn-create-ticket:hover {
