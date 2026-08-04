@@ -69,6 +69,7 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [activeTab, setActiveTab] = useState<"tickets" | "dashboard">("tickets");
   const { theme, toggleTheme } = useTheme();
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   // Fetch Tickets and Summary (Depends on Filters - only if user is logged in)
   useEffect(() => {
@@ -165,19 +166,35 @@ function App() {
               {theme === "dark" ? "☀️ Claro" : "🌙 Escuro"}
             </button>
 
-            {/* Simulated User Info */}
-            <div className="user-profile-nav">
-              <div className="avatar-circle">{getRoleIcon(currentUser.role)}</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{currentUser.name}</span>
-                <span className="role-name">{getRoleBadgeLabel(currentUser.role)}</span>
-              </div>
-            </div>
+            {/* User Profile Dropdown Menu */}
+            <div className="user-profile-menu-container">
+              <button 
+                className={`profile-menu-trigger ${isProfileMenuOpen ? 'active' : ''}`} 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                title="Menu do Usuário"
+              >
+                <div className="avatar-circle">{getRoleIcon(currentUser.role)}</div>
+                <div className="user-info-text">
+                  <span className="user-name">{currentUser.name}</span>
+                  <span className="role-name">{getRoleBadgeLabel(currentUser.role)}</span>
+                </div>
+                <span className="chevron-icon">{isProfileMenuOpen ? "▲" : "▼"}</span>
+              </button>
 
-            {/* Logout */}
-            <button className="btn-logout" onClick={handleLogout}>
-              Sair
-            </button>
+              {isProfileMenuOpen && (
+                <div className="profile-dropdown">
+                  <div className="dropdown-header">
+                    <span className="dropdown-user-name">{currentUser.name}</span>
+                    <span className="dropdown-user-email">{currentUser.email}</span>
+                    <span className="dropdown-user-role-badge">{getRoleBadgeLabel(currentUser.role)}</span>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item logout" onClick={handleLogout}>
+                    🚪 Sair da Conta
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </nav>
 
