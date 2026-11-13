@@ -1,0 +1,115 @@
+name: Release Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: release-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guardrail:
+    name: 🛡️ Validação de Origem (develop)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔍 Verificar Branch de Origem
+        run: |
+          HEAD_REF="${{ github.event.pull_request.head.ref }}"
+          if [ "$HEAD_REF" != "develop" ]; then
+            echo "::error::Releases para produção devem se originar exclusivamente da branch 'develop' (origem atual: '$HEAD_REF')."
+            exit 1
+          fi
+          echo "✓ PR de release originada da branch 'develop'."
+
+  quality-gate:
+    name: 🧪 Quality Gate (Testes, Build & Segredos)
+    needs: [guardrail]
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🛡️ Varredura Estrita de Segredos
+        run: |
+          chmod +x scripts/check-secrets.sh
+          ./scripts/check-secrets.sh --all
+
+      - name: 🧹 Verificação de Debug Code em Produção
+        run: |
+          echo "🔍 Verificando debuggers residuais..."
+          if grep -rn "debugger;" --exclude-dir={.git,node_modules,dist,build,test,tests,coverage,e2e} backend/src frontend/src; then
+            echo "::error::Comando 'debugger;' detectado em código de produção!"
+            exit 1
+          fi
+          echo "✓ Zero comandos debugger encontrados."
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: 📦 Instalar Dependências (Backend)
+        run: npm ci
+        working-directory: backend
+
+      - name: 🔍 Checagem de Tipos (Backend)
+        run: npx tsc --noEmit
+        working-directory: backend
+
+      - name: 🧪 Testes Unitários (Backend)
+        run: npm run test
+        working-directory: backend
+
+      - name: 🏗️ Compilar Backend
+        run: npm run build
+        working-directory: backend
+
+      - name: 📦 Instalar Dependências (Frontend)
+        run: |
+          npm ci
+          npm install --no-save @rollup/rollup-linux-x64-gnu
+        working-directory: frontend
+
+      - name: 🏗️ Compilar Frontend (Produção)
+        run: npm run build
+        working-directory: frontend
+
+  release-merge:
+    name: 🚀 Auto-Merge na Main (Nível 2 via Merge Commit)
+    needs: [guardrail, quality-gate]
+    if: github.event.pull_request.head.repo.full_name == github.repository && !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: 🔀 Executar Merge Commit na Main
+        run: gh pr merge --merge "$GITHUB_HEAD_REF"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: 🏷️ Fechar Issues Vinculadas Automaticamente
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          refs=$(gh pr view "$PR_NUMBER" --json closingIssuesReferences --jq '.closingIssuesReferences[].number' | sort -u)
+          for n in $refs; do
+            gh issue close "$n" --reason completed --comment "Fechada automaticamente pelo auto-merge de Release da PR #$PR_NUMBER na branch main."
+            echo "Fechada issue #$n"
+          done

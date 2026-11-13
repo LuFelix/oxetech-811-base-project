@@ -1,22 +1,57 @@
-name: Deploy to Production
+name: Continuous Deployment
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
+    name: 🚀 Deploy em Produção (VPS)
     runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
 
     steps:
-      - name: Execute Remote SSH Commands
-        uses: appleboy/ssh-action@master
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 🌐 Executar Script de Deploy na VPS
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST_VPS || secrets.SERVER_HOST }}
+          username: ${{ secrets.USERNAME_VPS || secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY || secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT_VPS || '22' }}
           script: |
             cd /var/www/oxetech-811-base-project
             chmod +x deploy.sh
             ./deploy.sh
+
+      - name: 🩺 Smoke Test HTTP Pós-Deploy
+        env:
+          SITE_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -n "$SITE_URL" ]; then
+            echo "Verificando disponibilidade em $SITE_URL..."
+            for i in {1..12}; do
+              if curl --fail --silent --show-error "$SITE_URL" > /dev/null; then
+                echo "✓ Serviço respondendo com sucesso (tentativa $i/12)."
+                exit 0
+              fi
+              echo "Aguardando inicialização do serviço ($i/12)..."
+              sleep 5
+            done
+            echo "❌ Falha no healthcheck após 60 segundos!"
+            exit 1
+          else
+            echo "ℹ️  HEALTHCHECK_URL não configurada; smoke test externo ignorado."
+          fi
