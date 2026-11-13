@@ -75,7 +75,9 @@ jobs:
         working-directory: backend
 
       - name: 📦 Instalar Dependências (Frontend)
-        run: npm ci
+        run: |
+          npm ci
+          npm install --no-save @rollup/rollup-linux-x64-gnu
         working-directory: frontend
 
       - name: 🏗️ Compilar Frontend (Produção)
